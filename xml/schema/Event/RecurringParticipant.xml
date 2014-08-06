@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Event</base>
+  <class>RecurringParticipant</class>
+  <name>civicrm_recurring_participant</name>
+  <add>1.7</add>
+  <log>true</log>
+  <field>
+      <name>id</name>
+      <title>ID</title>
+      <type>int unsigned</type>
+      <required>true</required>      
+      <add>1.7</add>
+  </field>
+  <primaryKey>
+       <name>id</name>
+       <autoincrement>true</autoincrement>
+  </primaryKey>
+  <field>
+      <name>participant_id</name>
+      <type>int unsigned</type>
+      <title>Participant ID</title>
+      <required>true</required>
+      <comment>FK to civicrm_participant id</comment>
+      <add>1.7</add>
+  </field>
+  <foreignKey>
+       <name>participant_id</name>
+       <table>civicrm_participant</table>
+       <key>id</key>
+       <onDelete>CASCADE</onDelete>
+  </foreignKey>
+  <field>
+      <name>repeat_id</name>
+      <type>int unsigned</type>
+      <title>Repeat ID</title>
+      <required>true</required>
+      <comment>FK to civicrm_recurring_entity id</comment>
+      <add>1.7</add>
+  </field>
+  <foreignKey>
+       <name>repeat_id</name>
+       <table>civicrm_recurring_entity</table>
+       <key>id</key>
+       <onDelete>CASCADE</onDelete>
+  </foreignKey>
+</table>

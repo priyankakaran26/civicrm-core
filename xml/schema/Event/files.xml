@@ -4,4 +4,5 @@
   <xi:include href="Participant.xml"           parse="xml" />
   <xi:include href="ParticipantPayment.xml"    parse="xml" />
   <xi:include href="ParticipantStatusType.xml" parse="xml" />
+  <xi:include href="RecurringParticipant.xml"  parse="xml" />
 </tables>
