@@ -42,16 +42,10 @@
     </tr>
     <tr class="crm-core-form-recurringentity-block-start_action_condition">
       <td class="label">
-          <label for="repeats_on">Repeats on:</label>
+          <label for="repeats_on">{$form.start_action_condition.label}:</label>
       </td>
       <td>
-          {$form.start_action_condition_mon.label}&nbsp;{$form.start_action_condition_mon.html}&nbsp;&nbsp;
-          {$form.start_action_condition_tue.label}&nbsp;{$form.start_action_condition_tue.html}&nbsp;&nbsp;
-          {$form.start_action_condition_wed.label}&nbsp;{$form.start_action_condition_wed.html}&nbsp;&nbsp;
-          {$form.start_action_condition_thu.label}&nbsp;{$form.start_action_condition_thu.html}&nbsp;&nbsp;
-          {$form.start_action_condition_fri.label}&nbsp;{$form.start_action_condition_fri.html}&nbsp;&nbsp;
-          {$form.start_action_condition_sat.label}&nbsp;{$form.start_action_condition_sat.html}&nbsp;&nbsp;
-          {$form.start_action_condition_sun.label}&nbsp;{$form.start_action_condition_sun.html}&nbsp;&nbsp;
+          {$form.start_action_condition.html}
       </td>
     </tr>
     <tr class="crm-core-form-recurringentity-block-repeats_by">
@@ -86,100 +80,5 @@
     {include file="CRM/common/formButtons.tpl" location="bottom"}</div>
   </div>
 </div>
-{literal}
-<style type="text/css">
-    #start_action_offset{
-        width: 40px;
-    }
-    #limit_to{
-        width:40px;
-    }
-    /*input[disabled="disabled"], select[disabled="disabled"]{
-        background-color: #EBEBE4 !important;
-    }*/
-</style>
-<script type="text/javascript">
-  CRM.$(function($) {
-    $('#repetition_frequency_unit').change(function () {
-        if($(this).val()==='hour'){
-            $('#repeats-every-text').html($(this).val()+'(s)');
-            $('.crm-core-form-recurringentity-block-start_action_condition').hide();
-            $('.crm-core-form-recurringentity-block-repeats_by td').hide();
-        }else if($(this).val()==='day'){
-            $('#repeats-every-text').html($(this).val()+'(s)');
-            $('.crm-core-form-recurringentity-block-start_action_condition').hide();
-            $('.crm-core-form-recurringentity-block-repeats_by td').hide();
-        }else if($(this).val()==='week'){
-            $('#repeats-every-text').html($(this).val()+'(s)');
-            //Show "Repeats On" block when week is selected 
-            $('.crm-core-form-recurringentity-block-start_action_condition').show();
-            $('.crm-core-form-recurringentity-block-repeats_by td').hide();
-        }else if($(this).val()==='month'){
-            $('#repeats-every-text').html($(this).val()+'(s)');
-            $('.crm-core-form-recurringentity-block-start_action_condition').hide();
-            //Show "Repeats By" block when month is selected 
-            $('.crm-core-form-recurringentity-block-repeats_by td').show();
-        }else if($(this).val()==='year'){
-            $('#repeats-every-text').html($(this).val()+'(s)');
-            $('.crm-core-form-recurringentity-block-start_action_condition').hide();
-            $('.crm-core-form-recurringentity-block-repeats_by td').hide();
-        }
-    });
-    //var test = $("input:radio[name=repeats_by]:checked").val();
-    //alert(test);
-    /*$('input:radio[name=repeats_by]').click(function() {
-        if($(this).val() == 1){
-            $('#limit_to').show();
-        }
-        if($(this).val() == 2){
-            $('#start_action_date_1').show();
-            $('#start_action_date_2').show();
-        }
-    });*/
-     /*$('#limit_to').hide();
-     $('#start_action_date_1').hide();
-     $('#start_action_date_2').hide();*/
-        
-    // For "Ends" block
-    $('input:radio[name=ends]').click(function() {
-        if($(this).val() == 1){
-            $('#start_action_offset').removeAttr('disabled').attr('enabled','enabled');
-        }else{
-            $('#start_action_offset').removeAttr('enabled').attr('disabled','disabled');
-        }
-        if($(this).val() == 2){
-            $('#absolute_date_display').removeAttr('disabled').attr('enabled','enabled');
-        }else{
-            $('#absolute_date_display').removeAttr('enabled').attr('disabled','disabled');
-        }
-    });
-    $('#start_action_offset').attr('disabled','disabled');
-    $('#absolute_date_display').attr('disabled','disabled');
-    
-    //For "Repeats By" block
-    $('input:radio[name=repeats_by]').click(function() {
-        if($(this).val() == 1){
-            $('#limit_to').removeAttr('disabled').attr('enabled','enabled');
-        }else{
-            $('#limit_to').removeAttr('enabled').attr('disabled','disabled');
-        }
-        if($(this).val() == 2){
-            $('#start_action_date_1').removeAttr('disabled').attr('enabled','enabled');
-            $('#start_action_date_2').removeAttr('disabled').attr('enabled','enabled');
-        }else{
-            $('#start_action_date_1').removeAttr('enabled').attr('disabled','disabled');
-            $('#start_action_date_2').removeAttr('enabled').attr('disabled','disabled');
-        }
-    });
-    $('#limit_to').attr('disabled','disabled');
-    $('#start_action_date_1').attr('disabled','disabled');
-    $('#start_action_date_2').attr('disabled','disabled');
-    
-    /****** On load "Repeats By" and "Repeats On" blocks should be hidden ******/
-    $('.crm-core-form-recurringentity-block-start_action_condition').hide();
-    $('.crm-core-form-recurringentity-block-repeats_by td').hide();
-    
-  });
-</script>
-{/literal}
+
 
