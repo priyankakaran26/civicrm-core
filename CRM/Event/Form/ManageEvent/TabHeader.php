@@ -103,6 +103,12 @@ class CRM_Event_Form_ManageEvent_TabHeader {
         'valid' => TRUE,
         'active' => TRUE,
         'current' => FALSE,
+      ),
+      'repeat' => array('title' => ts('Repeat Event'),
+        'link' => NULL,
+        'valid' => TRUE,
+        'active' => TRUE,
+        'current' => FALSE,
       )
     );
 
