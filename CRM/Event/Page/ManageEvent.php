@@ -151,6 +151,11 @@ class CRM_Event_Page_ManageEvent extends CRM_Core_Page {
           'url' => 'civicrm/event/manage/pcp',
           'field' => 'is_pcp_enabled',
         ),
+        'repeat' => array(
+          'title' => ts('Repeat Event'),
+          'url' => 'civicrm/event/manage/repeat',
+          'field' => 'is_pcp_enabled',
+        )
       );
     }
 
