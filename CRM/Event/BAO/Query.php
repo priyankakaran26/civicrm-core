@@ -205,6 +205,7 @@ class CRM_Event_BAO_Query {
       }
     }
   }
+  
 
   static function where(&$query) {
     $grouping = NULL;
@@ -243,7 +244,10 @@ class CRM_Event_BAO_Query {
 
       case 'event_id':
         $query->_where[$grouping][] = "civicrm_event.id $op {$value}";
-        $eventTitle = CRM_Core_DAO::getFieldValue('CRM_Event_DAO_Event', $value, 'title');
+//        echo "op".$op;
+//        echo "value".$value;
+//        echo "<pre>"; print_r($query->_where[$grouping]);
+       $eventTitle = CRM_Core_DAO::getFieldValue('CRM_Event_DAO_Event', $value, 'title');
         $query->_qill[$grouping][] = ts('Event') . " $op {$eventTitle}";
         $query->_tables['civicrm_event'] = $query->_whereTables['civicrm_event'] = 1;
         return;
@@ -255,7 +259,7 @@ class CRM_Event_BAO_Query {
         $query->_qill[$grouping][] = ts('Event Type - %1', array(1 => $eventTypes[$value]));
         $query->_tables['civicrm_event'] = $query->_whereTables['civicrm_event'] = 1;
         return;
-
+        
       case 'participant_test':
         // We dont want to include all tests for sql OR CRM-7827
         if (!$value || $query->getOperator() != 'OR') {
@@ -447,6 +451,7 @@ class CRM_Event_BAO_Query {
         CRM_Campaign_BAO_Query::componentSearchClause($campParams, $query);
         return;
     }
+    //echo "<pre>"; print_r($values);
   }
 
   static function from($name, $mode, $side) {
@@ -571,6 +576,7 @@ class CRM_Event_BAO_Query {
     $participantFeeId = &$form->add('hidden', 'participant_fee_id', '', array('id' => 'participant_fee_id'));
 
     CRM_Core_Form_Date::buildDateRange($form, 'event', 1, '_start_date_low', '_end_date_high', ts('From'), FALSE);
+    $eventIncludeRepeatingEvents = &$form->addElement('checkbox', "event_include_repeating_events", NULL, ts(' Include Repeating Events ? '));
 
     $status = CRM_Event_PseudoConstant::participantStatus(NULL, NULL, 'label');
     asort($status);

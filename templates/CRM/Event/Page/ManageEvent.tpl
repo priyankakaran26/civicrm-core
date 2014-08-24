@@ -84,9 +84,10 @@
       {foreach from=$rows key=keys item=row}
         {if $keys neq 'tab'}
           <tr id="row_{$row.id}" class="{if NOT $row.is_active} disabled{/if}">
-          <td class="crm-event_{$row.id}">
+          <td class="crm-event_{$row.id}">     
             <a href="{crmURL p='civicrm/event/info' q="id=`$row.id`&reset=1"}"
-               title="{ts}View event info page{/ts}" class="bold">{$row.title}</a>&nbsp;&nbsp;({ts}ID:{/ts} {$row.id})
+               title="{ts}View event info page{/ts}" class="bold">{$row.title}</a>&nbsp;&nbsp;({ts}ID:{/ts} {$row.id})<br/>
+            <span><b>{$row.repeat}</b></span>
           </td>
           <td class="crm-event-city">{$row.city}</td>
           <td class="crm-event-state_province">{$row.state_province}</td>

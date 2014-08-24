@@ -143,6 +143,34 @@ class CRM_Event_BAO_Event extends CRM_Event_DAO_Event {
       $params['created_date'] = date('YmdHis');
     }
 
+    //if you find isRepeatingEvent set it in id(For confirm box)
+//    if(CRM_Utils_Array::value('isRepeatingEvent', $_POST)){
+//        $params['id'] = $_POST['isRepeatingEvent'];
+//        $event = self::add($params);  
+//    }else{
+//      //Check if this is a repeating event if we have event id
+//      if(isset($params['id']) && !empty($params['id'])){
+//        $isRepeatingEvent = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($params['id']);
+//        if($isRepeatingEvent->parent_id){
+//          //Get all connection of this event
+//          $allEventIds = CRM_Core_Form_RecurringEntity::getAllConnectedEvents($isRepeatingEvent->parent_id);
+//          if($allEventIds->entity_id){
+//            $allConnectedIds = explode(',', $allEventIds->entity_id);
+//            $key = array_search($params['id'], $allConnectedIds);
+//            unset($allConnectedIds[$key]);
+//              if(!in_array($params['id'], $allConnectedIds)){
+//                $allConnectedIds[] = $params['id'];
+//              }
+//              foreach($allConnectedIds as $key => $val){
+//                $params['id'] = $val;
+//                unset($params['start_date']);
+//                unset($params['end_date']);
+//                $event = self::add($params);
+//              }
+//          }
+//        }
+//      }
+//    }
     $event = self::add($params);
 
     if (is_a($event, 'CRM_Core_Error')) {

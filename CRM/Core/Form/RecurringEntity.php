@@ -39,6 +39,13 @@ require_once 'packages/When-master/When.php';
  *
  */
 class CRM_Core_Form_RecurringEntity {
+  
+  static function preProcess(){
+    if (date_default_timezone_get()) {
+      date_default_timezone_get();
+    }
+    date_default_timezone_set(date_default_timezone_get());
+  }
   /**
    * action
    *
@@ -101,6 +108,7 @@ class CRM_Core_Form_RecurringEntity {
     $form->addElement('select', 'exclude_date_list', ts(''), array(), array('style' => 'width:200px;', 'multiple' => 'multiple'));
     $form->addElement('button','add_to_exclude_list','>>','onClick="addToExcludeList(document.getElementById(\'exclude_date\').value);"'); 
     $form->addElement('button','remove_from_exclude_list', '<<', 'onClick="removeFromExcludeList(\'exclude_date_list\')"'); 
+    $form->addElement('hidden', 'isChangeInRepeatConfiguration', '', array('id' => 'isChangeInRepeatConfiguration'));
     $form->addButtons(array(
         array(
           'type' => 'submit',
@@ -141,7 +149,7 @@ class CRM_Core_Form_RecurringEntity {
    *
    * @return None
    */
-  static function postProcess($params, $type='') {
+  static function postProcess($params=array(), $type='') {
     $buildRule = ''; 
     if(!empty($type)){
       $params['used_for'] = $type;
@@ -176,7 +184,7 @@ class CRM_Core_Form_RecurringEntity {
         foreach($repeats_on as $key => $val){
           $buildRuleArray[] = substr($key, 0, 2);
         }
-        $buildRule .= 'BYDAY='.strtoupper(implode(',', $buildRuleArray)).';';
+        $buildRule .= 'WKST=MO;BYDAY='.strtoupper(implode(',', $buildRuleArray)).';';
       }
     }else{
       unset($params['start_action_condition']);
@@ -242,9 +250,6 @@ class CRM_Core_Form_RecurringEntity {
       unset($params['absolute_date']);
     }
     $buildRule = rtrim($buildRule, ';');
-
-    //unset($params['id']);
-//    echo "<pre>"; print_r($params);exit;
     if(CRM_Utils_Array::value('id', $params)){
       CRM_Core_BAO_ActionSchedule::del($params['id']);
       unset($params['id']);
@@ -256,39 +261,75 @@ class CRM_Core_Form_RecurringEntity {
       //$groupParams = array('name' => 'event_repeat_exclude_dates_'.$params['parent_event_id']);
       //$optionValue = CRM_Core_OptionValue::addOptionValue($params['exclude_date_list'], $groupParams, $action);
     }
-    //$start = new DateTime('2015-03-08');
-    $start = new DateTime('2014-08-24 07:00:00.000000');
-    $r = new When();
+
+    //Check to avoid confusions with current date in the repeat list
+    if($params['repetition_frequency_unit'] == "hour"){
+      //Add as many number of hours in the criteria posted
+      if(CRM_Utils_Array::value('repetition_frequency_interval', $params)){
+        $newStartDate = date('Y-m-d H:i:s', strtotime($params['parent_event_start_date']. ' + '.$params['repetition_frequency_interval'].' hours'));
+        $start = new DateTime($newStartDate);
+      }
+    }else if($params['repetition_frequency_unit'] == "day"){
+      if(CRM_Utils_Array::value('repetition_frequency_interval', $params)){
+        $newStartDate = date('Y-m-d H:i:s', strtotime($params['parent_event_start_date']. ' + '.$params['repetition_frequency_interval'].' days'));
+        $start = new DateTime($newStartDate);
+      }
+    }else if($params['repetition_frequency_unit'] == "year"){
+      if(CRM_Utils_Array::value('repetition_frequency_interval', $params)){
+        $newStartDate = date('Y-m-d H:i:s', strtotime($params['parent_event_start_date']. ' + '.$params['repetition_frequency_interval'].' years'));
+        $start = new DateTime($newStartDate);
+      }
+    }else{  
+      $start = new DateTime($params['parent_event_start_date']);
+    }
     
-    //Recursion rule in action
-    $eparams = array();
-    if(!empty($buildRule)){
-      //echo $buildRule;
-      $r->recur($start)->rrule("'".$buildRule."'");
+    //Give call to create recursions
+    self::generateRecursions($start, $buildRule, $params);
+  }
+  //end of function
+
+  /**
+   * Return a descriptive name for the page, used in wizard header
+   *
+   * @return string
+   * @access public
+   */
+  public function getTitle() {
+    return ts('Repeat Event');
+  }
+
+  static public function generateRecursions($startDate='', $buildRule='', $params=array()){
+    //echo "<pre>"; print_r($params);exit;
+    $r = new When();
+    $newParams = array();
+    if(!empty($startDate) && !empty($buildRule) && !empty($params)){
+      //Proceed only if these keys are found in array
+      if(CRM_Utils_Array::value('parent_event_start_date', $params) && CRM_Utils_Array::value('parent_event_end_date', $params) && CRM_Utils_Array::value('parent_event_id', $params))
+//      echo $buildRule;
+      $r->recur($startDate)->rrule("$buildRule");
       while($result = $r->next()){
-        //echo $result->format('YmdHis'). '<br />';
-        //TO DO: Get parent event start date and end date
-        $eparams['start_date'] = CRM_Utils_Date::processDate($result->format('YmdHis'));
+        //$result->format('YmdHis'). '<br />';
+
+        $newParams['start_date'] = CRM_Utils_Date::processDate($result->format('YmdHis'));
         $parentStartDate = strtotime($params['parent_event_start_date']);
         $parentEndDate = strtotime($params['parent_event_end_date']);
         $diff = abs($parentEndDate - $parentStartDate);
-        //$difference = ($subTime/(60*60*24))%365;exit;
         $years   = floor($diff / (365*60*60*24)); 
         $months  = floor(($diff - $years * 365*60*60*24) / (30*60*60*24)); 
         $days    = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24)); 
         $hours   = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24)/ (60*60));
         $minutes  = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60)/ 60); 
         $seconds = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60 - $minutes*60));
-        $end_date = CRM_Utils_Date::processDate(date('YmdHis', strtotime($eparams['start_date']. ' + '.$years.' years + '.$months.' months + '.$days.' days + '.$hours.' hours + '.$minutes.' minutes + '.$seconds.' seconds')));
-        $eparams['end_date'] = $end_date;
-        //echo "<pre>";print_r($eparams);
+        $end_date = CRM_Utils_Date::processDate(date('YmdHis', strtotime($newParams['start_date']. ' + '.$years.' years + '.$months.' months + '.$days.' days + '.$hours.' hours + '.$minutes.' minutes + '.$seconds.' seconds')));
+        $newParams['end_date'] = $end_date;
+        
         $daoObject = new CRM_Event_DAO_Event();
         $daoObject->id = $params['parent_event_id'];
         if($daoObject->find(TRUE)){
           $newEventObject = clone($daoObject);
           unset($newEventObject->id);
-          $newEventObject->start_date = $eparams['start_date'];
-          $newEventObject->end_date = $eparams['end_date'];
+          $newEventObject->start_date = $newParams['start_date'];
+          $newEventObject->end_date = $newParams['end_date'];
           $newEventObject->save();
         }
         
@@ -344,7 +385,8 @@ class CRM_Core_Form_RecurringEntity {
         $daoRecurringEntity->save();
         //CRM_Core_Error::debug_log_message("My event recursion");
       }
-      //Check if there were any connections made
+      
+      //Additional entry for parent event
       if($daoRecurringEntity->id){
         $daoRecurringEntity = new CRM_Core_DAO_RecurringEntity();
         $daoRecurringEntity->parent_id = $params['parent_event_id'];
@@ -353,19 +395,9 @@ class CRM_Core_Form_RecurringEntity {
         $daoRecurringEntity->save();
       }
     }
+    return;
   }
-  //end of function
-
-  /**
-   * Return a descriptive name for the page, used in wizard header
-   *
-   * @return string
-   * @access public
-   */
-  public function getTitle() {
-    return ts('Repeat Event');
-  }
-
+  
   /*
    * Get Reminder id based on event id
    */
@@ -381,6 +413,7 @@ class CRM_Core_Form_RecurringEntity {
     return $dao;
   }
   
+  //It is a repeating event if, there exists a parent for an event
   static public function checkParentExistsForThisId($currentEventId){
     if(!empty($currentEventId)){
       $query = "
@@ -404,4 +437,114 @@ class CRM_Core_Form_RecurringEntity {
     }
     return $dao;
   }
+  
+  static public function genericSave($obj){
+//    echo get_class($obj);exit;
+//    echo "hieeeeeeeeeeeeeeeeeeee";
+//    echo "<pre>"; print_r($obj);
+    static $getConnectionId = NULL;
+    if($getConnectionId == $obj->id){
+      return;
+    }
+    if(!empty($obj->id)){
+      $isRepeatingEvent = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($obj->id);
+        if($isRepeatingEvent->parent_id){
+          //Get all connection of this event
+          $allEventIds = CRM_Core_Form_RecurringEntity::getAllConnectedEvents($isRepeatingEvent->parent_id);
+          if($allEventIds->entity_id){
+//            $allConnectedIds = explode(',', $allEventIds->entity_id);
+//            $key = array_search($obj->id, $allConnectedIds);
+//            unset($allConnectedIds[$key]);
+            //For this and all events in series
+//              if(!in_array($obj->id, $allConnectedIds)){
+//                $allConnectedIds[] = $params['id'];
+//              }
+              $daoObject = new CRM_Event_DAO_Event();
+                //Set Connection to avoid going in infinite loop
+                echo "ConnectionId".$getConnectionId = $obj->id;
+                $daoObject->id = $obj->id;
+                if($daoObject->find(TRUE)){
+                  unset($params['start_date']);
+                  unset($params['end_date']);
+                  $daoObject->save();
+                }
+                $allConnectedIds = array(4012, 4013);
+              foreach($allConnectedIds as $key => $val){
+                $daoObject = new CRM_Event_DAO_Event();
+                //Set Connection to avoid going in infinite loop
+                $getConnectionId = $val;
+                $daoObject->id = $val;
+                if($daoObject->find(TRUE)){
+                  unset($params['start_date']);
+                  unset($params['end_date']);
+                  $daoObject->save();
+                  //echo "thisid".$daoObject->id;exit;
+                }
+              }
+          }
+        }
+    }
+  }
+  
+  static function updateRecurCriterias($currentId=''){
+    if(isset($currentId) && !empty($currentId)){
+      $checkParentExistsForThisId = self::checkParentExistsForThisId($currentId);
+      if($checkParentExistsForThisId->parent_id){
+        $getAllConnections = self::getAllConnectedEvents($checkParentExistsForThisId->parent_id);
+        //If there are any connections
+        if($getAllConnections->entity_id){
+          $listOfCurrentAndFutureEvents = self::getListOfCurrentAndFutureEvents($getAllConnections->entity_id);
+        }
+        //Lets delete relations for events which already happened
+        if($listOfCurrentAndFutureEvents->ids){
+          echo "All Connections".$getAllConnections->entity_id."<br>";
+          echo "All Future Events".$listOfCurrentAndFutureEvents->ids."<br>";
+          self::deleleRelationsForEventsInPast($listOfCurrentAndFutureEvents->ids);
+          //Now that we have deleted past relations, we need to make the current id as parent 
+          //and insert the record 
+//          foreach($listOfCurrentAndFutureEvents->ids as $val){
+//            $daoRecurringEntity = new CRM_Core_DAO_RecurringEntity();
+//            $daoRecurringEntity->parent_id = $currentId;
+//            $daoRecurringEntity->entity_id = $val;
+//            $daoRecurringEntity->entity_table = 'civicrm_event';
+//            $daoRecurringEntity->save();
+//          }
+//          if($daoRecurringEntity->id){
+//            $daoRecurringEntity = new CRM_Core_DAO_RecurringEntity();
+//            $daoRecurringEntity->parent_id = $currentId;
+//            $daoRecurringEntity->entity_id = $currentId;
+//            $daoRecurringEntity->entity_table = 'civicrm_event';
+//            $daoRecurringEntity->save();
+//          }
+          // After creating relations lets call getRecursions to build new event list
+        }
+      }
+    }
+    return;
+  }
+  
+  static function getListOfCurrentAndFutureEvents($ids=''){
+    if(isset($ids) and !empty($ids)){
+      $curDate = date('YmdHis');
+      $query = "SELECT group_concat(id) as ids FROM civicrm_event 
+                WHERE id IN ({$ids}) 
+                AND ( end_date >= {$curDate} OR
+                (
+                  ( end_date IS NULL OR end_date = '' ) AND start_date >= {$curDate}
+                ))";
+      $dao = CRM_Core_DAO::executeQuery($query);
+      $dao->fetch();
+    }
+    return $dao;
+  }
+  
+  static function deleleRelationsForEventsInPast($ids=''){
+    if(isset($ids) and !empty($ids)){
+      $query = "DELETE FROM civicrm_recurring_entity
+                WHERE entity_id IN ({$ids})";
+      $dao = CRM_Core_DAO::executeQuery($query);
+    }
+    return; 
+  }
+  
 }

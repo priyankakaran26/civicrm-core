@@ -278,7 +278,7 @@ class CRM_Core_DAO extends DB_DataObject {
       $this->insert();
     }
     $this->free();
-
+    CRM_Core_Form_RecurringEntity::genericSave($this);
     CRM_Utils_Hook::postSave($this);
 
     return $this;

@@ -33,29 +33,29 @@
         <table class="form-layout-compressed">
           <tr class="crm-core-form-recurringentity-block-repetition_frequency_unit">
             <td class="label">{$form.repetition_frequency_unit.label}</td>
-            <td>{$form.repetition_frequency_unit.html}</td>
+            <td>{$form.repetition_frequency_unit.html} {help id="id-repeats"}</td>
           </tr>
           <tr class="crm-core-form-recurringentity-block-repetition_frequency_interval">
             <td class="label">{$form.repetition_frequency_interval.label}</td>
-            <td>{$form.repetition_frequency_interval.html} &nbsp;<span id="repeats-every-text">hour(s)</span>
+            <td>{$form.repetition_frequency_interval.html} &nbsp;<span id="repeats-every-text">hour(s)</span> {help id="id-repeats-every"}</td>
             </td>
           </tr>
           <tr class="crm-core-form-recurringentity-block-start_action_condition">
             <td class="label">
-                <label for="repeats_on">{$form.start_action_condition.label}:</label>
+                <label for="repeats_on">{$form.start_action_condition.label}: </label>
             </td>
             <td>
-                {$form.start_action_condition.html}
+                {$form.start_action_condition.html} {help id="id-repeats-on"}</td>
             </td>
           </tr>
           <tr class="crm-core-form-recurringentity-block-repeats_by">
             <td class="label">{$form.repeats_by.label}</td>
-            <td>{$form.repeats_by.1.html}&nbsp;&nbsp;{$form.limit_to.html}
+            <td>{$form.repeats_by.1.html}&nbsp;&nbsp;{$form.limit_to.html} {help id="id-repeats-by-month"}
             </td>
           </tr>
           <tr class="crm-core-form-recurringentity-block-repeats_by">
             <td class="label"></td>
-            <td>{$form.repeats_by.2.html}&nbsp;&nbsp;{$form.start_action_date_1.html}&nbsp;&nbsp;{$form.start_action_date_2.html}
+            <td>{$form.repeats_by.2.html}&nbsp;&nbsp;{$form.start_action_date_1.html}&nbsp;&nbsp;{$form.start_action_date_2.html} {help id="id-repeats-by-week"}
             </td>
           </tr>
           {*<tr class="crm-core-form-recurringentity-block-event_start_date">
@@ -64,18 +64,18 @@
           </tr>*}
           <tr class="crm-core-form-recurringentity-block-ends">
             <td class="label">{$form.ends.label}</td>
-            <td>{$form.ends.1.html}&nbsp;{$form.start_action_offset.html}&nbsp;Occurrences</td>
+            <td>{$form.ends.1.html}&nbsp;{$form.start_action_offset.html}&nbsp;occurrences {help id="id-ends-after"}</td>
           </tr>
           <tr class="crm-core-form-recurringentity-block-absolute_date">
               <td class="label"></td>
-              <td>{$form.ends.2.html}&nbsp;{include file="CRM/common/jcalendar.tpl" elementName=repeat_absolute_date}
+              <td>{$form.ends.2.html}&nbsp;{include file="CRM/common/jcalendar.tpl" elementName=repeat_absolute_date} {help id="id-ends-on"}
               </td>
           </tr>
           <tr class="crm-core-form-recurringentity-block-exclude_date">
               <td class="label">{$form.exclude_date.label}</td>
               <td>&nbsp;{include file="CRM/common/jcalendar.tpl" elementName=exclude_date}
                   &nbsp;{$form.add_to_exclude_list.html}&nbsp;{$form.remove_from_exclude_list.html}
-                  {$form.exclude_date_list.html}
+                  {$form.exclude_date_list.html} {help id="id-exclude-date"}
               </td>
           </tr>
 
@@ -88,6 +88,9 @@
         {include file="CRM/common/formButtons.tpl" location="bottom"}
       </div>
     </div>
+</div>
+<div id="dialog" style="display:none">
+    Changing Repeat configuration may affect all other connected repeating events, Are you sure?
 </div>
 {literal}
 <style type="text/css">
@@ -123,17 +126,28 @@
     /***********On Load Set Ends Value (Edit Mode) **********/
     if(cj('input:radio[name=ends]:checked').val() == 1){
         cj('#start_action_offset').removeAttr('disabled').attr('enabled','enabled');
+        cj('#repeat_absolute_date_display').removeAttr("enabled").attr('disabled','disabled');
         cj('#repeat_absolute_date_display').val('');
-        //alert("1");
     }else if(cj('input:radio[name=ends]:checked').val() == 2){
         cj('#repeat_absolute_date_display').removeAttr("disabled").attr('enabled','enabled');
+        cj('#start_action_offset').removeAttr('enabled').attr('disabled','disabled');
         cj('#start_action_offset').val('');
-        //alert("2s");
     }else{
         cj('#start_action_offset').removeAttr('enabled').attr('disabled','disabled');
         cj('#repeat_absolute_date_display').removeAttr('enabled').attr('disabled','disabled');
     }
-        
+
+    /******On Load set Repeats by section******************/
+    if(cj('input:radio[name=repeats_by]:checked').val() == 1){
+        cj('#limit_to').removeAttr('disabled').attr('enabled','enabled');
+        cj('#start_action_date_1, #start_action_date_2').removeAttr("enabled").attr('disabled','disabled');
+    }else if(cj('input:radio[name=repeats_by]:checked').val() == 2){
+        cj('#start_action_date_1, #start_action_date_2').removeAttr("disabled").attr('enabled','enabled');
+        cj('#limit_to').removeAttr('enabled').attr('disabled','disabled');
+    }else{
+        //Just in-case block shows up, disable it
+        cj('#limit_to, #start_action_date_1, #start_action_date_2').removeAttr('enabled').attr('disabled','disabled');
+    }
     
     cj('#repetition_frequency_unit').change(function () {
         if(cj(this).val()==='hour'){
@@ -166,10 +180,7 @@
         if(cj(this).val() == 1){
             cj('#start_action_offset').removeAttr('disabled').attr('enabled','enabled');
             cj('#repeat_absolute_date_display').val('');
-        }else{
-            cj('#start_action_offset').removeAttr('enabled').attr('disabled','disabled');
-        }
-        if(cj(this).val() == 2){
+        }else if(cj(this).val() == 2){
             cj('#repeat_absolute_date_display').removeAttr('disabled').attr('enabled','enabled');
             cj('#start_action_offset').val('');
         }else{
@@ -194,15 +205,37 @@
             cj('#start_action_date_2').removeAttr('enabled').attr('disabled','disabled');
         }
     });
-    cj('#limit_to').attr('disabled','disabled');
-    cj('#start_action_date_1').attr('disabled','disabled');
-    cj('#start_action_date_2').attr('disabled','disabled');
         
     //Select all options in listbox before submitting
     cj(this).submit(function() {
         cj("#exclude_date_list option").attr("selected",true);
-        });
     });
+    
+    //Dialog for changes in repeat configuration
+    cj('#dialog').dialog({ autoOpen: false });
+    cj('#_qf_Repeat_submit-top, #_qf_Repeat_submit-bottom').click(
+        function () {
+            cj('#dialog').dialog('open');
+            cj('#dialog').dialog({
+                title: 'Save recurring event',
+                width: '600',
+                position: 'center',
+                //draggable: false,
+                buttons: {
+                    Yes: function() {
+                        cj(this).dialog( "close" );
+                        cj('#isChangeInRepeatConfiguration').val('1');
+                        cj('form').submit();
+                    },
+                    No: function() { //cancel
+                        cj(this).dialog( "close" );
+                    }
+                }
+            });
+            return false;
+        }
+    );
+});
     
     //Exclude list function
     function addToExcludeList(val) {

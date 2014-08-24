@@ -148,8 +148,14 @@ class CRM_Event_Form_ManageEvent extends CRM_Core_Form {
         CRM_Utils_System::setTitle(ts('Edit Event Template') . " - $title");
       }
       else {
+        $configureText = ts('Configure Event');
         $title = CRM_Utils_Array::value('title', $eventInfo);
-        CRM_Utils_System::setTitle(ts('Configure Event') . " - $title");
+        //If it is a repeating event change title
+        $isRepeatingEvent = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($this->_id);
+        if($isRepeatingEvent->parent_id){
+          $configureText = 'Configure Repeating Event';
+        }
+        CRM_Utils_System::setTitle($configureText . " - $title");
       }
       $this->assign('title', $title);
     }
@@ -176,6 +182,13 @@ class CRM_Event_Form_ManageEvent extends CRM_Core_Form {
     }
 
     $this->_templateId = (int) CRM_Utils_Request::retrieve('template_id', 'Integer', $this);
+    
+    //Is a repeating event
+    $isRepeatingEvent = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($this->_id);
+    if($isRepeatingEvent->parent_id){
+      $isRepeat = 'repeat';
+      $this->assign('isRepeat', $isRepeat);
+    }
 
     // also set up tabs
     CRM_Event_Form_ManageEvent_TabHeader::build($this);
