@@ -155,7 +155,7 @@
         {include file="CRM/Contact/Form/Task/EmailCommon.tpl" upload=1 noAttach=1}
   </fieldset>
 {/if}
-
+{include file="CRM/Event/Form/ConfirmSubmit.tpl"}
  <div class="crm-submit-buttons">
       {include file="CRM/common/formButtons.tpl" location="bottom"}</div>
  </div>

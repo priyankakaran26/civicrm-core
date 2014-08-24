@@ -32,6 +32,7 @@
 </tr>
 <tr>
 {include file="CRM/Core/DateRange.tpl" fieldName="event" from='_start_date_low' to='_end_date_high'}
+<td>{$form.event_include_repeating_events.label}&nbsp;&nbsp;{$form.event_include_repeating_events.html}</td>
 </tr>
 <tr>
   <td class="crm-event-form-block-participant_status"><label>{ts}Participant Status{/ts}</label>

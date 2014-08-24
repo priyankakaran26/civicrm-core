@@ -305,6 +305,15 @@ ORDER BY start_date desc
     while ($dao->fetch()) {
       if (in_array($dao->id, $permissions[CRM_Core_Permission::VIEW])) {
         $manageEvent[$dao->id] = array();
+        $isRepeatingEvent = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($dao->id);
+        $manageEvent[$dao->id]['repeat'] = '';
+        if($isRepeatingEvent->parent_id){
+          if($dao->id == $isRepeatingEvent->parent_id){
+            $manageEvent[$dao->id]['repeat'] = 'Repeating Event - (Parent)';
+          }else{
+            $manageEvent[$dao->id]['repeat'] = 'Repeating Event - (Child)';
+          }
+        }
         CRM_Core_DAO::storeValues($dao, $manageEvent[$dao->id]);
 
         // form all action links
