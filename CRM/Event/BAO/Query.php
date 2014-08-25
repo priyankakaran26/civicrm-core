@@ -241,17 +241,44 @@ class CRM_Event_BAO_Query {
           'civicrm_event', 'event_end_date', 'end_date', 'End Date'
         );
         return;
-
+        
       case 'event_id':
         $query->_where[$grouping][] = "civicrm_event.id $op {$value}";
-//        echo "op".$op;
-//        echo "value".$value;
-//        echo "<pre>"; print_r($query->_where[$grouping]);
-       $eventTitle = CRM_Core_DAO::getFieldValue('CRM_Event_DAO_Event', $value, 'title');
+        $eventTitle = CRM_Core_DAO::getFieldValue('CRM_Event_DAO_Event', $value, 'title');
         $query->_qill[$grouping][] = ts('Event') . " $op {$eventTitle}";
         $query->_tables['civicrm_event'] = $query->_whereTables['civicrm_event'] = 1;
         return;
-
+        
+      case 'event_include_repeating_events':
+        /**
+         * Include Repeating Events
+         */
+        //Get parent of this event
+        if($query->_where[$grouping]){
+          foreach($query->_where[$grouping] as $key => $val){
+            if (strstr($val, 'civicrm_event.id =')) {
+              $extractEventId = explode(" ", $val);
+              $value = $extractEventId[2];
+              unset($query->_where[$grouping][$key]);
+            }
+          }
+          $extractEventId = explode(" ", 'civicrm_event.id = 3');
+          $value = $extractEventId[2];
+          unset($query->_where[$grouping][$key]);
+        }
+        $thisEventHasParent = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($value);
+        if($thisEventHasParent->parent_id){
+          $getAllConnections = CRM_Core_Form_RecurringEntity::getAllConnectedEvents($thisEventHasParent->parent_id);
+          if($getAllConnections->entity_id){
+            $op = "IN";
+            $value = "($getAllConnections->entity_id)";
+          }
+        }
+        $query->_where[$grouping][] = "civicrm_event.id $op {$value}";
+        $query->_qill[$grouping][] = ts('Include Repeating Events(If Any) ') . " = TRUE";
+        $query->_tables['civicrm_event'] = $query->_whereTables['civicrm_event'] = 1;
+        return;
+       
       case 'event_type_id':
 
         $eventTypes = CRM_Core_OptionGroup::values("event_type");
@@ -451,13 +478,13 @@ class CRM_Event_BAO_Query {
         CRM_Campaign_BAO_Query::componentSearchClause($campParams, $query);
         return;
     }
-    //echo "<pre>"; print_r($values);
+    
   }
 
   static function from($name, $mode, $side) {
     $from = NULL;
     switch ($name) {
-      case 'civicrm_participant':
+      case 'civicrm_participant': 
         $from = " LEFT JOIN civicrm_participant ON civicrm_participant.contact_id = contact_a.id ";
         break;
 
@@ -614,7 +641,7 @@ class CRM_Event_BAO_Query {
     }
 
     CRM_Campaign_BAO_Campaign::addCampaignInComponentSearch($form, 'participant_campaign_id');
-
+    
     $form->assign('validCiviEvent', TRUE);
     $form->setDefaults(array('participant_test' => 0));
   }
