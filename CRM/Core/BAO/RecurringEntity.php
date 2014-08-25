@@ -38,6 +38,37 @@ class CRM_Core_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntity {
   static $_tableDAOMapper = 
     array('civicrm_event' => 'CRM_Event_DAO_Event');
 
+  static function add(&$params) {
+    if (CRM_Utils_Array::value('id', $params)) {
+      CRM_Utils_Hook::pre('edit', 'RecurringEntity', $params['id'], $params);
+    }
+    else {
+      CRM_Utils_Hook::pre('create', 'RecurringEntity', NULL, $params);
+    }
+
+    $daoRecurringEntity = new CRM_Core_DAO_RecurringEntity();
+    $daoRecurringEntity->copyValues($params);
+    $result = $daoRecurringEntity->save();
+
+    if (CRM_Utils_Array::value('id', $params)) {
+      CRM_Utils_Hook::post('edit', 'RecurringEntity', $daoRecurringEntity->id, $daoRecurringEntity);
+    }
+    else {
+      CRM_Utils_Hook::post('create', 'RecurringEntity', $daoRecurringEntity->id, $daoRecurringEntity);
+    }
+    return $result;
+  }
+
+  static function quickAdd($parentId, $entityId, $entityTable) {
+    $params = 
+      array(
+        'parent_id'    => $parentId,
+        'entity_id'    => $entityId,
+        'entity_table' => $entityTable
+      );
+    return self::add($params);
+  }
+
   static public function getEntitiesForParent($parentId, $entityTable, $includeParent = TRUE) {
     $entities = array();
 

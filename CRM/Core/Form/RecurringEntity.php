@@ -330,7 +330,9 @@ class CRM_Core_Form_RecurringEntity {
           unset($newEventObject->id);
           $newEventObject->start_date = $newParams['start_date'];
           $newEventObject->end_date = $newParams['end_date'];
+          $newEventObject->created_date = date('YmdHis');
           $newEventObject->save();
+          CRM_Core_BAO_RecurringEntity::quickAdd($daoObject->id, $newEventObject->id, 'civicrm_event');
         }
         
         //Copy Priceset
@@ -364,7 +366,9 @@ class CRM_Core_Form_RecurringEntity {
           $copyFriend->entity_id = $newEventObject->id;
           unset($copyFriend->id);
           $copyFriend->save();
+          CRM_Core_BAO_RecurringEntity::quickAdd($daoFriend->id, $copyFriend->id, 'civicrm_tell_friend');
         }
+
         //copy PCP
         $daoPCP = new CRM_PCP_DAO_PCPBlock();
         $daoPCP->entity_id = $params['parent_event_id'];
@@ -374,26 +378,11 @@ class CRM_Core_Form_RecurringEntity {
           $copyPCP->entity_id = $newEventObject->id;
           unset($copyPCP->id);
           $copyPCP->save();
+          CRM_Core_BAO_RecurringEntity::quickAdd($daoPCP->id, $copyPCP->id, 'civicrm_pcp_block');
         }
-        
-        //echo "<pre>"; print_r($copyObject);
-        // Insert in civicrm_recurring_entity table to maintain relation
-        $daoRecurringEntity = new CRM_Core_DAO_RecurringEntity();
-        $daoRecurringEntity->parent_id = $params['parent_event_id'];
-        $daoRecurringEntity->entity_id = $newEventObject->id;
-        $daoRecurringEntity->entity_table = 'civicrm_event';
-        $daoRecurringEntity->save();
-        //CRM_Core_Error::debug_log_message("My event recursion");
       }
       
-      //Additional entry for parent event
-      if($daoRecurringEntity->id){
-        $daoRecurringEntity = new CRM_Core_DAO_RecurringEntity();
-        $daoRecurringEntity->parent_id = $params['parent_event_id'];
-        $daoRecurringEntity->entity_id = $params['parent_event_id'];
-        $daoRecurringEntity->entity_table = 'civicrm_event';
-        $daoRecurringEntity->save();
-      }
+      CRM_Core_BAO_RecurringEntity::quickAdd($params['parent_event_id'], $params['parent_event_id'], 'civicrm_event');
     }
     return;
   }
