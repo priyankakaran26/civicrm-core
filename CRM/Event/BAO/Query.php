@@ -254,15 +254,17 @@ class CRM_Event_BAO_Query {
          * Include Repeating Events
          */
         //Get parent of this event
+        $exEventId = '';
         if($query->_where[$grouping]){
           foreach($query->_where[$grouping] as $key => $val){
             if (strstr($val, 'civicrm_event.id =')) {
+              $exEventId = $val;
               $extractEventId = explode(" ", $val);
               $value = $extractEventId[2];
               unset($query->_where[$grouping][$key]);
             }
           }
-          $extractEventId = explode(" ", 'civicrm_event.id = 3');
+          $extractEventId = explode(" ", $exEventId);
           $value = $extractEventId[2];
           unset($query->_where[$grouping][$key]);
         }
@@ -275,7 +277,7 @@ class CRM_Event_BAO_Query {
           }
         }
         $query->_where[$grouping][] = "civicrm_event.id $op {$value}";
-        $query->_qill[$grouping][] = ts('Include Repeating Events(If Any) ') . " = TRUE";
+        $query->_qill[$grouping][] = ts('Include Repeating Events (If Any) ') . " = TRUE";
         $query->_tables['civicrm_event'] = $query->_whereTables['civicrm_event'] = 1;
         return;
        
@@ -603,7 +605,7 @@ class CRM_Event_BAO_Query {
     $participantFeeId = &$form->add('hidden', 'participant_fee_id', '', array('id' => 'participant_fee_id'));
 
     CRM_Core_Form_Date::buildDateRange($form, 'event', 1, '_start_date_low', '_end_date_high', ts('From'), FALSE);
-    $eventIncludeRepeatingEvents = &$form->addElement('checkbox', "event_include_repeating_events", NULL, ts(' Include Repeating Events ? '));
+    $eventIncludeRepeatingEvents = &$form->addElement('checkbox', "event_include_repeating_events", NULL, ts(' Include Repeating Events (If Any) ? '));
 
     $status = CRM_Event_PseudoConstant::participantStatus(NULL, NULL, 'label');
     asort($status);

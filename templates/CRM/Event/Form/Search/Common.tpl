@@ -103,7 +103,7 @@ var typeUrl  = "{/literal}{$dataURLEventType}{literal}";
 var feeUrl   = "{/literal}{$dataURLEventFee}{literal}";
 
 cj('#event_name').autocomplete( eventUrl, { width : 280, selectFirst : false, matchContains: true
-}).result( function(event, data, formatted) { cj( "input#event_id" ).val( data[1] );
+}).result( function(event, data, formatted) { cj( "input#event_id" ).val( data[1] ); cj('#event_include_repeating_events, label[for="event_include_repeating_events"]').show();
   }).bind( 'click', function( ) { cj( "input#event_id" ).val(''); });
 
 cj('#event_type').autocomplete( typeUrl, { width : 180, selectFirst : false, matchContains: true
@@ -113,5 +113,18 @@ cj('#event_type').autocomplete( typeUrl, { width : 180, selectFirst : false, mat
 cj('#participant_fee_level').autocomplete( feeUrl, { width : 180, selectFirst : false, matchContains: true
 }).result(function(event, data, formatted) { cj( "input#participant_fee_id" ).val( data[1] );
   }).bind( 'click', function( ) { cj( "input#participant_fee_id" ).val(''); });
+
+cj(document).ready(function() {  
+    cj('#event_include_repeating_events, label[for="event_include_repeating_events"]').hide();
+    if (cj('#event_name').val() != "" || cj('#event_include_repeating_events').is(':checked')) {
+        cj('#event_include_repeating_events, label[for="event_include_repeating_events"]').show();
+    }
+    cj('#event_name').blur(function() {
+       if(cj('#event_name').val() == ""){
+            cj('#event_include_repeating_events').attr('checked', false);
+            cj('#event_include_repeating_events, label[for="event_include_repeating_events"]').hide();
+        }
+    });
+});
 </script>
 {/literal}
