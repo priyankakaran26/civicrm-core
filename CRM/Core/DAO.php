@@ -273,12 +273,13 @@ class CRM_Core_DAO extends DB_DataObject {
   function save() {
     if (!empty($this->id)) {
       $this->update();
+      CRM_Core_BAO_RecurringEntity::triggerUpdate($this);
     }
     else {
       $this->insert();
     }
     $this->free();
-    CRM_Core_Form_RecurringEntity::genericSave($this);
+
     CRM_Utils_Hook::postSave($this);
 
     return $this;
@@ -1129,6 +1130,41 @@ FROM   civicrm_domain
       $newObject->save();
     }
     return $newObject;
+  }
+
+  static function cascadeUpdate($daoName, $fromId, $toId, $newData = array()) {
+    $object = new $daoName( );
+    $object->id = $fromId;
+
+    if ($object->find(TRUE)) {
+      $newObject = new $daoName( );
+      $newObject->id = $toId;
+
+      if ($newObject->find(TRUE)) {
+        $fields = &$object->fields();
+        foreach ($fields as $name => $value) {
+          if ($name == 'id' || $value['name'] == 'id') {
+            // copy everything but the id!
+            continue;
+          }
+
+          $colName = $value['name'];
+          $newObject->$colName = $object->$colName;
+
+          if (substr($name, -5) == '_date' ||
+            substr($name, -10) == '_date_time'
+          ) {
+            $newObject->$colName = CRM_Utils_Date::isoToMysql($newObject->$colName);
+          }
+        }
+        foreach ($newData as $k => $v) {
+          $newObject->$k = $v;
+        }
+        $newObject->save();
+        return $newObject;
+      }
+    }
+    return CRM_Core_DAO::$_nullObject;
   }
 
   /**
