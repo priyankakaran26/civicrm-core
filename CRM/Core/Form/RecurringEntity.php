@@ -40,6 +40,11 @@ require_once 'packages/When-master/When.php';
  */
 class CRM_Core_Form_RecurringEntity {
   
+  /**
+   * Store generated dates for entity
+   */
+  protected $_generatedDates = array();
+  
   static function preProcess(){
     if (date_default_timezone_get()) {
       date_default_timezone_get();
@@ -105,11 +110,17 @@ class CRM_Core_Form_RecurringEntity {
     $form->addFormRule(array('CRM_Core_Form_RecurringEntity', 'formRule'));
     $form->addDate('repeat_absolute_date', ts('On'), FALSE, array('formatType' => 'mailing'));
     $form->addDate('exclude_date', ts('Exclude Date(s)'), FALSE);
-    $form->addElement('select', 'exclude_date_list', ts(''), array(), array('style' => 'width:200px;', 'multiple' => 'multiple'));
+    $select = $form->add('select', 'exclude_date_list', ts(''), $form->_excludeDateInfo, array('style' => 'width:200px;', 'size' => 4));
+    $select->setMultiple(TRUE);
     $form->addElement('button','add_to_exclude_list','>>','onClick="addToExcludeList(document.getElementById(\'exclude_date\').value);"'); 
     $form->addElement('button','remove_from_exclude_list', '<<', 'onClick="removeFromExcludeList(\'exclude_date_list\')"'); 
     $form->addElement('hidden', 'isChangeInRepeatConfiguration', '', array('id' => 'isChangeInRepeatConfiguration'));
+    $form->addElement('hidden', 'copyExcludeDates', '', array('id' => 'copyExcludeDates'));
     $form->addButtons(array(
+        array(
+          'type' => 'button',
+          'name' => ts('Preview')
+        ),
         array(
           'type' => 'submit',
           'name' => ts('Save'),
@@ -121,6 +132,8 @@ class CRM_Core_Form_RecurringEntity {
         ),
       )
     );
+    $form->_generatedDates = array(1 => array(2,4,5));
+    $form->assign('generatedDates', $form->_generatedDates);
   }
 
   /**
@@ -134,6 +147,7 @@ class CRM_Core_Form_RecurringEntity {
    */
   static function formRule($values) {
     $errors = array();
+    CRM_Core_Error::debug($values);
 //    $start = CRM_Utils_Date::processDate($values['repeat_event_start_date']);
 //    $end = CRM_Utils_Date::processDate($values['repeat_absolute_date']);
 //    if (($end < $start) && ($end != 0)) {
@@ -257,11 +271,47 @@ class CRM_Core_Form_RecurringEntity {
     CRM_Core_BAO_ActionSchedule::add($params);
     
     //TO DO - Exclude date functionality
-    if(CRM_Utils_Array::value('exclude_date_list', $params)){
-      //$groupParams = array('name' => 'event_repeat_exclude_dates_'.$params['parent_event_id']);
-      //$optionValue = CRM_Core_OptionValue::addOptionValue($params['exclude_date_list'], $groupParams, $action);
-    }
+    if(CRM_Utils_Array::value('copyExcludeDates', $params) && CRM_Utils_Array::value('parent_event_id', $params)){   
+      //Since we get comma separated values lets get them in array
+      $exclude_date_list = array();
+      $exclude_date_list = explode(",", $params['copyExcludeDates']);
 
+      //Check if there exists any values for this option group
+      $optionGroupIdExists = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionGroup',
+          'event_repeat_exclude_dates_'.$params['parent_event_id'],
+          'id',
+          'name'
+        );
+      if($optionGroupIdExists){
+        CRM_Core_BAO_OptionGroup::del($optionGroupIdExists);
+      }
+      $optionGroupParams = 
+          array(
+            'name'        => 'event_repeat_exclude_dates_'.$params['parent_event_id'],
+            'title'       => 'Event Recursion',
+            'is_reserved' => 0,
+            'is_active'   => 1
+          );
+      $opGroup = CRM_Core_BAO_OptionGroup::add($optionGroupParams);
+      if($opGroup->id){
+        $oldWeight= 0;
+        $fieldValues = array('option_group_id' => $opGroup->id);
+        foreach($exclude_date_list as $val){
+          $optionGroupValue = 
+              array(
+                'option_group_id' =>  $opGroup->id,
+                'label'           =>  CRM_Utils_Date::processDate($val),
+                'value'           =>  CRM_Utils_Date::processDate($val),
+                'name'            =>  $opGroup->name,
+                'description'     =>  'Used for event recursion',
+                'weight'          =>  CRM_Utils_Weight::updateOtherWeights('CRM_Core_DAO_OptionValue', $oldWeight, CRM_Utils_Array::value('weight', $params), $fieldValues),
+                'is_active'       =>  1
+              );
+          CRM_Core_BAO_OptionValue::add($optionGroupValue);
+        }
+      }
+    }
+    
     //Check to avoid confusions with current date in the repeat list
     if($params['repetition_frequency_unit'] == "hour"){
       //Add as many number of hours in the criteria posted
@@ -309,8 +359,9 @@ class CRM_Core_Form_RecurringEntity {
       $r->recur($startDate)->rrule("$buildRule");
       while($result = $r->next()){
         //$result->format('YmdHis'). '<br />';
-
-        $newParams['start_date'] = CRM_Utils_Date::processDate($result->format('YmdHis'));
+        
+        $newParams['start_date'] = $form->_generatedDates['start_date'][] = CRM_Utils_Date::processDate($result->format('YmdHis'));
+        
         $parentStartDate = strtotime($params['parent_event_start_date']);
         $parentEndDate = strtotime($params['parent_event_end_date']);
         $diff = abs($parentEndDate - $parentStartDate);
@@ -321,8 +372,8 @@ class CRM_Core_Form_RecurringEntity {
         $minutes  = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60)/ 60); 
         $seconds = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60 - $minutes*60));
         $end_date = CRM_Utils_Date::processDate(date('YmdHis', strtotime($newParams['start_date']. ' + '.$years.' years + '.$months.' months + '.$days.' days + '.$hours.' hours + '.$minutes.' minutes + '.$seconds.' seconds')));
-        $newParams['end_date'] = $end_date;
-        
+        $newParams['end_date'] = $form->_generatedDates['end_date'][] = $end_date;
+        $form->_generatedDates['complete_date_range'][] = $newParams['start_date']." - ".$newParams['end_date'];
         $daoObject = new CRM_Event_DAO_Event();
         $daoObject->id = $params['parent_event_id'];
         if($daoObject->find(TRUE)){
@@ -381,7 +432,7 @@ class CRM_Core_Form_RecurringEntity {
           CRM_Core_BAO_RecurringEntity::quickAdd($daoPCP->id, $copyPCP->id, 'civicrm_pcp_block');
         }
       }
-      
+      //CRM_Core_Error::debug($form->_generatedDates);exit;
       CRM_Core_BAO_RecurringEntity::quickAdd($params['parent_event_id'], $params['parent_event_id'], 'civicrm_event');
     }
     return;

@@ -77,5 +77,5 @@
 {ts}Exclude Date{/ts}
 {/htxt}
 {htxt id="id-exclude-date"}
-  {ts}{/ts}
+  {ts}Dates added here would be ignored for repeating events{/ts}
 {/htxt}

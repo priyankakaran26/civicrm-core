@@ -23,7 +23,7 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
 *}
-  <div id="dialog" style="display:none">
+  <div id="dialog" style="display:none;">
       Would you like to change this event only, or this and following events in series?<br/><br/>
       <div style="display: inline-block">
           <div style="display:inline-block;width:100%;">
@@ -33,7 +33,7 @@
               <div style="width:70%;float:left;">All other events in the series will remain same</div></div>
           <div style="display:inline-block;width:100%;">
               <div style="width:30%;float:left;">
-                  <button class="dialog-button all-following-event">This and Following Events</button>
+                  <button class="dialog-button this-and-all-following-event">This and Following Events</button>
               </div>
               <div style="width:70%;float:left;">This and all the following events will be changed</div>
           </div>
@@ -62,42 +62,42 @@
     {literal}
         <script type="text/javascript">
         cj(document).ready(function() {
-            //alert("hieeeee");
-           /* cj("#dialog").dialog({ autoOpen: false });
-            cj("#_qf_EventInfo_upload-top, #_qf_EventInfo_upload_done-top, #_qf_EventInfo_upload-bottom, #_qf_EventInfo_upload_done-bottom, #_qf_Location_upload-top, _qf_Location_upload_done-top, #_qf_Location_upload-bottom, #_qf_Location_upload_done-bottom, #_qf_Fee_upload-top, #_qf_Fee_upload_done-top, #_qf_Fee_upload-bottom, #_qf_Fee_upload_done-bottom, #_qf_Registration_upload-top, #_qf_Registration_upload_done-top, #_qf_Registration_upload-bottom, #_qf_Registration_upload_done-bottom, #_qf_ScheduleReminders_upload-top, #_qf_ScheduleReminders_upload_done-top, #_qf_ScheduleReminders_upload-bottom, #_qf_ScheduleReminders_upload_done-bottom, #_qf_Event_upload-top, #_qf_Event_upload_done-top, #_qf_Event_upload-bottom, #_qf_Event_upload_done-bottom, #_qf_Repeat_submit-top, #_qf_Repeat_submit-bottom").click(
-                function () {
-                    cj("#dialog").dialog('open');
-                    cj("#dialog").dialog({
-                        title: 'Save recurring event',
-                        width: '650',
-                        position: 'center',
-                        //draggable: false,
-                        buttons: {
-                            Cancel: function() { //cancel
-                                cj( this ).dialog( "close" );
-                            }
+           cj("#dialog").dialog({ autoOpen: false });
+            cj('div.crm-submit-buttons span.crm-button input[value="Save"], div.crm-submit-buttons span.crm-button input[value="Save and Done"]').click( function () {
+                cj("#dialog").dialog('open');
+                cj("#dialog").dialog({
+                    title: 'Save recurring event',
+                    width: '650',
+                    position: 'center',
+                    //draggable: false,
+                    buttons: {
+                        Cancel: function() { //cancel
+                            cj( this ).dialog( "close" );
                         }
+                    }
+                });
+                return false;
+            });
+            cj(".this-and-all-following-event").click(function(){
+                var eventID ={/literal}{$id}{literal};
+                if(eventID != ""){
+                    var ajaxurl = CRM.url("civicrm/ajax/recurringEntity");
+                    var data    = {cascadeType: 2, entityId: eventID};
+                    cj.ajax({
+                      dataType: "json",
+                      data: data,
+                      url:  ajaxurl,
+                      success: function (result) {
+                          alert("hieeeeeee");
+                          cj("#dialog").dialog('close');
+    //                      alert("Changes Saved");
+                      }
                     });
-                    return false;
                 }
-            );*/
-            cj(".all-following-event").click(function(){
-                cj("#dialog").dialog('close');
-                cj("form").submit();
             });
             cj(".only-this-event").click(function(){
-                cj("#is-repeating-event").val({/literal}{$eventID}{literal});
                 cj("#dialog").dialog('close');
                 cj("form").submit();
-    /*            var ajaxurl = CRM.url("civicrm/event/manage/settings");
-                cj.ajax({
-                  data: "reset=1&action=update&id="+ {/literal}{$eventID}{literal} +"&isrepeat=1",
-                  url:  ajaxurl,
-                  success: function (data) {
-                      cj("#dialog").dialog('close');
-                      alert("Changes Saved");
-                  }
-                });*/
             });
         });
         </script>

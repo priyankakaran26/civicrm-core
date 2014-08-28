@@ -78,10 +78,9 @@
                   {$form.exclude_date_list.html} {help id="id-exclude-date"}
               </td>
           </tr>
-
           <tr>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
+            <td class="label"><b>Summary:</b></td>
+            <td><span id="rec-summary"></span></td>
           </tr>
         </table>
       <div class="crm-submit-buttons">
@@ -91,6 +90,14 @@
 </div>
 <div id="dialog" style="display:none">
     Changing Repeat configuration may affect all other connected repeating events, Are you sure?
+</div>
+<div id="preview-dialog" style="display:none">
+    Here is the list of generated event dates, Do you wish to proceed?
+    <br/>
+    {foreach from=$generatedDates key=keys item=row}
+        <div style="display:block;">{$row}</div>
+    {/foreach}
+    
 </div>
 {literal}
 <style type="text/css">
@@ -205,10 +212,16 @@
             cj('#start_action_date_2').removeAttr('enabled').attr('disabled','disabled');
         }
     });
-        
-    //Select all options in listbox before submitting
+    
+    //Select all options in selectbox before submitting
     cj(this).submit(function() {
-        cj("#exclude_date_list option").attr("selected",true);
+        cj('#exclude_date_list option').attr('selected',true);
+        var dateTxt=[];
+        cj('#exclude_date_list option:selected').each(function(){
+            dateTxt.push(cj(this).text());
+        });
+        var completeDateText = dateTxt.join(',');
+        cj('#copyExcludeDates').val(completeDateText);
     });
     
     //Dialog for changes in repeat configuration
@@ -235,6 +248,103 @@
             return false;
         }
     );
+    
+    //Dialog for preview repeat Configuration dates
+    cj('#preview-dialog').dialog({ autoOpen: false });
+    cj('#_qf_Repeat_button-top, #_qf_Repeat_button-bottom').click( function (){
+        cj('#preview-dialog').dialog('open');
+        cj('#preview-dialog').dialog({
+            title: 'Save recurring event',
+            width: '600',
+            position: 'center',
+            //draggable: false,
+            buttons: {
+                Yes: function() {
+                    cj(this).dialog( "close" );
+                    cj('form').submit();
+                },
+                No: function() { //cancel
+                    cj(this).dialog( "close" );
+                }
+            }
+        });
+        return false;
+    });
+    
+    //Build Summary
+/*    var summary = '';
+    cj('#repetition_frequency_unit').change(function () {
+        if(cj(this).val() == "day"){
+            summary = "Daily";
+        }else{
+            summary = cj(this).val() + "ly";
+        }
+        cj('#rec-summary').text(summary);
+    });
+    cj('#repetition_frequency_interval').change(function () {
+        summary = cj('#rec-summary').text();
+        if(cj(this).val() != 1){
+            summary_int = "Every " + cj(this).val() + " " + summary.substr(0, summary.length-2) + "s";
+            cj('#rec-summary').text(summary);
+        }else{
+            cj('#rec-summary').text(cj('#repetition_frequency_unit option:selected').val());
+        }
+        
+    });*/
+    var finalSummary = '';
+    var numberText = '';
+    if(cj('#repetition_frequency_interval').val() != 1){
+        numberText = 's';
+    }
+    finalSummary = "Every " + cj('#repetition_frequency_interval').val() + ' ' + cj('#repetition_frequency_unit option:selected').val().substr(0, 1).toUpperCase() + cj('#repetition_frequency_unit option:selected').val().substr(1).toLowerCase() + numberText;
+    
+    //Case Week
+    var dayOfWeek = new Array();
+    cj("input[name^='start_action_condition']:checked").each(function() {
+        var tempArray = new Array();
+        var thisID = cj(this).attr('id');
+        tempArray = thisID.split('_');
+        dayOfWeek.push(tempArray[3].substr(0, 1).toUpperCase() + tempArray[3].substr(1).toLowerCase());
+        finalSummary += ' on ' + dayOfWeek.join();
+    });
+    
+    //Case Monthly
+    if(cj('input:radio[name=repeats_by]:checked').val() == 1){
+        finalSummary = cj('#repetition_frequency_unit option:selected').val().substr(0, 1).toUpperCase() + cj('#repetition_frequency_unit option:selected').val().substr(1).toLowerCase() + 'ly' + ' on day ' + cj('#limit_to').val();
+    }
+    if(cj('input:radio[name=repeats_by]:checked').val() == 2){
+        finalSummary = cj('#repetition_frequency_unit option:selected').val().substr(0, 1).toUpperCase() + cj('#repetition_frequency_unit option:selected').val().substr(1).toLowerCase() + 'ly' + ' on the ' + cj('#start_action_date_1').val().substr(0, 1).toUpperCase() + cj('#start_action_date_1').val().substr(1).toLowerCase() + ' ' + cj('#start_action_date_2').val().substr(0, 1).toUpperCase() + cj('#start_action_date_2').val().substr(1).toLowerCase();
+    }
+    
+    //Case Ends
+    if(cj('input:radio[name=ends]:checked').val() == 1){
+        var timeText = ''
+        if(cj('#start_action_offset').val() != 1){
+            timeText = ' times';
+        }else{
+            timeText = ' once';
+        }
+        finalSummary += ', ' + cj('#start_action_offset').val() + timeText;
+    }
+    if(cj('input:radio[name=ends]:checked').val() == 2){
+        var monthNames = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+        var date = new Date(cj('#repeat_absolute_date_display').val());
+        function addOrdinal(d) {
+            if(d>3 && d<21) return 'th'; 
+            switch (d % 10) {
+                  case 1:  return "st";
+                  case 2:  return "nd";
+                  case 3:  return "rd";
+                  default: return "th";
+              }
+          } 
+        var newDate = monthNames[(date.getMonth() + 1)] + ' ' + date.getDate()+ addOrdinal() + ' ' +  date.getFullYear();
+        finalSummary += ', untill '+ newDate;
+    }
+    
+    //Build/Attach final Summary
+    cj('#rec-summary').html(finalSummary);
+    
 });
     
     //Exclude list function

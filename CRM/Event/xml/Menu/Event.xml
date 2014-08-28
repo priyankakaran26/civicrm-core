@@ -338,4 +338,9 @@
     <is_public>true</is_public>
     <is_ssl>false</is_ssl>
   </item>
+  <item>
+     <path>civicrm/ajax/recurringEntity</path>
+     <page_callback>CRM_Core_Page_Ajax_RecurringEntity::updateCascadeType</page_callback>
+     <access_arguments>access CiviCRM,access CiviEvent</access_arguments>
+  </item>
 </menu>

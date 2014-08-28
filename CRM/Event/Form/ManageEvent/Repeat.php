@@ -37,6 +37,12 @@ class CRM_Event_Form_ManageEvent_Repeat extends CRM_Event_Form_ManageEvent {
    * Parent Event End Date
    */
   protected $_parentEventEndDate = NULL;
+  
+  /**
+   * Exclude date information 
+   */
+  public $_excludeDateInfo = array();
+  
   protected $_pager = NULL;
   
   
@@ -85,14 +91,23 @@ class CRM_Event_Form_ManageEvent_Repeat extends CRM_Event_Form_ManageEvent {
       $this->_parentEventId = $this->_id;
     }
     
-    
-    $this->_action = CRM_Utils_Request::retrieve('action', 'String', $this);
     $parentEventParams = array('id' => $this->_id);
     $parentEventValues = array();
     $parentEventReturnProperties = array('start_date', 'end_date');
     $parentEventAttributes = CRM_Core_DAO::commonRetrieve('CRM_Event_DAO_Event', $parentEventParams, $parentEventValues, $parentEventReturnProperties);
     $this->_parentEventStartDate = $parentEventAttributes->start_date;
     $this->_parentEventEndDate = $parentEventAttributes->end_date;
+    
+    //Get option exclude date information
+    //$groupId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionGroup', 'event_repeat_exclude_dates_'.$this->_parentEventId, 'id', 'name');
+    CRM_Core_OptionValue::getValues(array('name' => 'event_repeat_exclude_dates_'.$this->_parentEventId), $optionValue);
+    $excludeOptionValues = array();
+    if(!empty($optionValue)){
+      foreach($optionValue as $key => $val){
+        $excludeOptionValues[$val['value']] = date('m/d/Y', strtotime($val['value']));
+      }
+      $this->_excludeDateInfo = $excludeOptionValues;
+    } 
   }
   
   /**
@@ -138,8 +153,14 @@ class CRM_Event_Form_ManageEvent_Repeat extends CRM_Event_Form_ManageEvent {
       if($this->_scheduleReminderDetails->start_action_date){
         $defaults['repeats_by'] = 2;
       }
+      //echo "<pre>"; print_r($this->_excludeDateInfo);
+      $defaults['exclude_date_list'] = array('a', 'b');
+         /* array
+        (
+            0 => '08/25/2014',
+            1 => '08/28/2014'
+        );*/
     } 
-    //CRM_Core_Error::debug($defaults);
     return $defaults;
   }
   
@@ -153,7 +174,6 @@ class CRM_Event_Form_ManageEvent_Repeat extends CRM_Event_Form_ManageEvent {
       $params['parent_event_id'] = $this->_parentEventId;
       $params['parent_event_start_date'] = $this->_parentEventStartDate;
       $params['parent_event_end_date'] = $this->_parentEventEndDate;
-      $params['action'] = $this->_action;
       //Unset event id
       unset($params['id']);
       
