@@ -78,7 +78,7 @@ class CRM_Core_Form_RecurringEntity {
                          );
     $form->add('select', 'repetition_frequency_unit', ts('Repeats:'), $freqUnitsDisplay, TRUE);
     $numericOptions = CRM_Core_SelectValues::getNumericOptions(1, 30);
-    $form->add('select', 'repetition_frequency_interval', ts('Repeats every:'), $numericOptions, TRUE);
+    $form->add('select', 'repetition_frequency_interval', ts('Repeats every:'), $numericOptions, TRUE, array('style' => 'width:49px;'));
     foreach($dayOfTheWeek as $key => $val){
         $startActionCondition[] = $form->createElement('checkbox', $key, NULL, substr($val."&nbsp;", 0, 3));
     }
@@ -87,7 +87,8 @@ class CRM_Core_Form_RecurringEntity {
         '2' => ts('day of the week'),
       );
     $form->addRadio('repeats_by', ts("Repeats By:"), $roptionTypes, array(), NULL);
-    $form->add('text', 'limit_to', '', array('maxlength' => 2, 'size' => 10));
+    $getMonths = CRM_Core_SelectValues::getNumericOptions(1, 31);
+    $form->add('select', 'limit_to', '', $getMonths, FALSE, array('style' => 'width:49px;'));
     $dayOfTheWeekNo = array('first'  => 'First',
                             'second'=> 'Second',
                             'third' => 'Third',
@@ -96,17 +97,11 @@ class CRM_Core_Form_RecurringEntity {
                          );
     $form->add('select', 'start_action_date_1', ts(''), $dayOfTheWeekNo);
     $form->add('select', 'start_action_date_2', ts(''), $dayOfTheWeek);
-    //$form->addDateTime('repeat_event_start_date', ts('Start Date:'), FALSE, array('formatType' => 'activityDateTime'));
     $eoptionTypes = array('1' => ts('After'),
         '2' => ts('On'),
       );
-    $form->addRadio('ends', ts("Ends:"), $eoptionTypes, array(), NULL);
-    $form->add('text', 'start_action_offset', ts('Occurrences'),
-      array(
-        'size' => 45,
-        'maxlength' => 128
-      )
-    );
+    $form->addRadio('ends', ts("Ends:"), $eoptionTypes, array(), NULL, TRUE);
+    $form->add('text', 'start_action_offset', ts('Occurrences'));
     $form->addFormRule(array('CRM_Core_Form_RecurringEntity', 'formRule'));
     $form->addDate('repeat_absolute_date', ts('On'), FALSE, array('formatType' => 'mailing'));
     $form->addDate('exclude_date', ts('Exclude Date(s)'), FALSE);
@@ -147,12 +142,71 @@ class CRM_Core_Form_RecurringEntity {
    */
   static function formRule($values) {
     $errors = array();
-    CRM_Core_Error::debug($values);
-//    $start = CRM_Utils_Date::processDate($values['repeat_event_start_date']);
-//    $end = CRM_Utils_Date::processDate($values['repeat_absolute_date']);
-//    if (($end < $start) && ($end != 0)) {
-//      $errors['repeat_absolute_date'] = ts('End date should be after Start date');
-//    }
+    $dayOfTheWeek = array(monday,tuesday,wednesday,thursday,friday,saturday,sunday);
+//    CRM_Core_Error::debug('$values', $values);
+    
+    //Repeats
+    if(!CRM_Utils_Array::value('repetition_frequency_unit', $values)){
+      $errors['repetition_frequency_unit'] = ts('This is a required field');
+    }
+    //Repeats every
+    if(!CRM_Utils_Array::value('repetition_frequency_interval', $values)){
+      $errors['repetition_frequency_interval'] = ts('This is a required field');
+    }
+    //Ends
+    if(CRM_Utils_Array::value('ends', $values)){
+      if($values['ends'] == 1){
+        if ($values['start_action_offset'] == "") {
+          $errors['start_action_offset'] = ts('This is a required field');
+        }else if($values['start_action_offset'] > 30){
+          $errors['start_action_offset'] = ts('Occurrences should be less than or equal to 30');
+        }
+      }
+      if($values['ends'] == 2){
+        if ($values['repeat_absolute_date'] != "") {
+          $today = date("Y-m-d H:i:s"); 
+          $today = CRM_Utils_Date::processDate($today);
+          $end = CRM_Utils_Date::processDate($values['repeat_absolute_date']);
+          if (($end <= $today) && ($end != 0)) {
+            $errors['repeat_absolute_date'] = ts('End date should be after today\'s date');
+          }
+        }else{
+          $errors['repeat_absolute_date'] = ts('This is a required field');
+        }
+      }
+    }else{
+      $errors['ends'] = ts('This is a required field');
+    }
+    
+    //Repeats BY
+    if(CRM_Utils_Array::value('repeats_by', $values)){
+      if($values['repeats_by'] == 1){
+        if($values['limit_to'] != ""){
+          if($values['limit_to'] < 1 && $values['limit_to'] > 31){
+            $errors['limit_to'] = ts('Invalid day of the month');
+          }
+        }else{
+          $errors['limit_to'] = ts('Invalid day of the month');
+        }
+      }
+      if($values['repeats_by'] == 2){
+        if($values['start_action_date_1'] != "" ) {
+          $dayOfTheWeekNo = array(first, second, third, fourth, last);
+          if(!in_array($values['start_action_date_1'], $dayOfTheWeekNo)){
+             $errors['start_action_date_1'] = ts('Invalid option');
+          }
+        }else{
+          $errors['start_action_date_1'] = ts('Invalid option');
+        }
+        if($values['start_action_date_2'] != "" ) {
+          if(!in_array($values['start_action_date_2'], $dayOfTheWeek)){
+             $errors['start_action_date_2'] = ts('Invalid day name');
+          }
+        }else{
+          $errors['start_action_date_2'] = ts('Invalid day name');
+        }
+      }
+    }
     return $errors;
   }
 
@@ -235,8 +289,6 @@ class CRM_Core_Form_RecurringEntity {
           }
           $buildRule .= 'BYDAY='.$startActionDate1.strtoupper(substr($params['start_action_date_2'], 0, 2).';');
           $params['start_action_date'] = $params['start_action_date_1']." ".$params['start_action_date_2'];
-          //Set value of "day of the month" to 0 since db has default value as 1
-          $params['limit_to'] = 0;
         }
       }else{
         unset($params['limit_to'], $params['start_action_date']);
@@ -332,7 +384,44 @@ class CRM_Core_Form_RecurringEntity {
     }else{  
       $start = new DateTime($params['parent_event_start_date']);
     }
-    
+//    $addInterval = '';
+//    switch ($params['repetition_frequency_unit']) {
+//      case 'hour':
+//        $addInterval = 'hours';
+//        break;
+//
+//      case 'day':
+//        $addInterval = 'days';
+//        break;
+//      
+//      case 'year':
+//        $addInterval = 'years';
+//        break;
+//      
+//      case 'month':
+//        $addInterval = 'months';
+//        break;
+//      
+//      case 'week':
+//        $addInterval = 'weeks';
+//        break;
+//      
+//      default:
+//        break;
+//    }
+//    
+//    if(CRM_Utils_Array::value('repetition_frequency_interval', $params) && CRM_Utils_Array::value('parent_event_start_date', $params)){
+//      //Don't add interval for month and week when interval is set to 1
+//      if(($addInterval == 'months' || $addInterval == 'weeks') && $params['repetition_frequency_interval'] == 1){
+//        $start = new DateTime($params['parent_event_start_date']);
+//      }else{
+//        $newStartDate = date('Y-m-d H:i:s', strtotime($params['parent_event_start_date']. ' + '.$params['repetition_frequency_interval'].' '.$addInterval));
+//        $start = new DateTime($newStartDate);
+//      }
+//    }else{
+//      //If in future we add some more repeat options current function should be carried out
+//      $start = new DateTime($params['parent_event_start_date']);
+//    }
     //Give call to create recursions
     self::generateRecursions($start, $buildRule, $params);
   }
@@ -357,81 +446,81 @@ class CRM_Core_Form_RecurringEntity {
       if(CRM_Utils_Array::value('parent_event_start_date', $params) && CRM_Utils_Array::value('parent_event_end_date', $params) && CRM_Utils_Array::value('parent_event_id', $params))
 //      echo $buildRule;
       $r->recur($startDate)->rrule("$buildRule");
-      while($result = $r->next()){
-        //$result->format('YmdHis'). '<br />';
-        
-        $newParams['start_date'] = $form->_generatedDates['start_date'][] = CRM_Utils_Date::processDate($result->format('YmdHis'));
-        
-        $parentStartDate = strtotime($params['parent_event_start_date']);
-        $parentEndDate = strtotime($params['parent_event_end_date']);
-        $diff = abs($parentEndDate - $parentStartDate);
-        $years   = floor($diff / (365*60*60*24)); 
-        $months  = floor(($diff - $years * 365*60*60*24) / (30*60*60*24)); 
-        $days    = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24)); 
-        $hours   = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24)/ (60*60));
-        $minutes  = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60)/ 60); 
-        $seconds = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60 - $minutes*60));
-        $end_date = CRM_Utils_Date::processDate(date('YmdHis', strtotime($newParams['start_date']. ' + '.$years.' years + '.$months.' months + '.$days.' days + '.$hours.' hours + '.$minutes.' minutes + '.$seconds.' seconds')));
-        $newParams['end_date'] = $form->_generatedDates['end_date'][] = $end_date;
-        $form->_generatedDates['complete_date_range'][] = $newParams['start_date']." - ".$newParams['end_date'];
-        $daoObject = new CRM_Event_DAO_Event();
-        $daoObject->id = $params['parent_event_id'];
-        if($daoObject->find(TRUE)){
-          $newEventObject = clone($daoObject);
-          unset($newEventObject->id);
-          $newEventObject->start_date = $newParams['start_date'];
-          $newEventObject->end_date = $newParams['end_date'];
-          $newEventObject->created_date = date('YmdHis');
-          $newEventObject->save();
-          CRM_Core_BAO_RecurringEntity::quickAdd($daoObject->id, $newEventObject->id, 'civicrm_event');
-        }
-        
-        //Copy Priceset
-        $daoPriceSet = new CRM_Price_DAO_PriceSetEntity();
-        $daoPriceSet->entity_id = $params['parent_event_id'];
-        $daoPriceSet->entity_table = 'civicrm_event';
-        if($daoPriceSet->find(TRUE)){
-          $copyPriceSet = clone($daoPriceSet);
-          $copyPriceSet->entity_id = $newEventObject->id;
-          unset($copyPriceSet->id);
-          $copyPriceSet->save();
-        }
-        
-        //copy UF
-        $daoUF = new CRM_Core_DAO_UFJoin();
-        $daoUF->entity_id = $params['parent_event_id'];
-        $daoUF->entity_table = 'civicrm_event';
-        if($daoUF->find(TRUE)){
-          $copyUF = clone($daoUF);
-          $copyUF->entity_id = $newEventObject->id;
-          unset($copyUF->id);
-          $copyUF->save();
-        }
-        
-        //copy Friend
-        $daoFriend = new CRM_Friend_DAO_Friend();
-        $daoFriend->entity_id = $params['parent_event_id'];
-        $daoFriend->entity_table = 'civicrm_event';
-        if($daoFriend->find(TRUE)){
-          $copyFriend = clone($daoFriend);
-          $copyFriend->entity_id = $newEventObject->id;
-          unset($copyFriend->id);
-          $copyFriend->save();
-          CRM_Core_BAO_RecurringEntity::quickAdd($daoFriend->id, $copyFriend->id, 'civicrm_tell_friend');
-        }
-
-        //copy PCP
-        $daoPCP = new CRM_PCP_DAO_PCPBlock();
-        $daoPCP->entity_id = $params['parent_event_id'];
-        $daoPCP->entity_table = 'civicrm_event';
-        if($daoPCP->find(TRUE)){
-          $copyPCP = clone($daoPCP);
-          $copyPCP->entity_id = $newEventObject->id;
-          unset($copyPCP->id);
-          $copyPCP->save();
-          CRM_Core_BAO_RecurringEntity::quickAdd($daoPCP->id, $copyPCP->id, 'civicrm_pcp_block');
-        }
-      }
+//      while($result = $r->next()){
+//        //$result->format('YmdHis'). '<br />';
+//        
+//        $newParams['start_date'] = $form->_generatedDates['start_date'][] = CRM_Utils_Date::processDate($result->format('YmdHis'));
+//        
+//        $parentStartDate = strtotime($params['parent_event_start_date']);
+//        $parentEndDate = strtotime($params['parent_event_end_date']);
+//        $diff = abs($parentEndDate - $parentStartDate);
+//        $years   = floor($diff / (365*60*60*24)); 
+//        $months  = floor(($diff - $years * 365*60*60*24) / (30*60*60*24)); 
+//        $days    = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24)); 
+//        $hours   = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24)/ (60*60));
+//        $minutes  = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60)/ 60); 
+//        $seconds = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60 - $minutes*60));
+//        $end_date = CRM_Utils_Date::processDate(date('YmdHis', strtotime($newParams['start_date']. ' + '.$years.' years + '.$months.' months + '.$days.' days + '.$hours.' hours + '.$minutes.' minutes + '.$seconds.' seconds')));
+//        $newParams['end_date'] = $form->_generatedDates['end_date'][] = $end_date;
+//        $form->_generatedDates['complete_date_range'][] = $newParams['start_date']." - ".$newParams['end_date'];
+//        $daoObject = new CRM_Event_DAO_Event();
+//        $daoObject->id = $params['parent_event_id'];
+//        if($daoObject->find(TRUE)){
+//          $newEventObject = clone($daoObject);
+//          unset($newEventObject->id);
+//          $newEventObject->start_date = $newParams['start_date'];
+//          $newEventObject->end_date = $newParams['end_date'];
+//          $newEventObject->created_date = date('YmdHis');
+//          $newEventObject->save();
+//          CRM_Core_BAO_RecurringEntity::quickAdd($daoObject->id, $newEventObject->id, 'civicrm_event');
+//        }
+//        
+//        //Copy Priceset
+//        $daoPriceSet = new CRM_Price_DAO_PriceSetEntity();
+//        $daoPriceSet->entity_id = $params['parent_event_id'];
+//        $daoPriceSet->entity_table = 'civicrm_event';
+//        if($daoPriceSet->find(TRUE)){
+//          $copyPriceSet = clone($daoPriceSet);
+//          $copyPriceSet->entity_id = $newEventObject->id;
+//          unset($copyPriceSet->id);
+//          $copyPriceSet->save();
+//        }
+//        
+//        //copy UF
+//        $daoUF = new CRM_Core_DAO_UFJoin();
+//        $daoUF->entity_id = $params['parent_event_id'];
+//        $daoUF->entity_table = 'civicrm_event';
+//        if($daoUF->find(TRUE)){
+//          $copyUF = clone($daoUF);
+//          $copyUF->entity_id = $newEventObject->id;
+//          unset($copyUF->id);
+//          $copyUF->save();
+//        }
+//        
+//        //copy Friend
+//        $daoFriend = new CRM_Friend_DAO_Friend();
+//        $daoFriend->entity_id = $params['parent_event_id'];
+//        $daoFriend->entity_table = 'civicrm_event';
+//        if($daoFriend->find(TRUE)){
+//          $copyFriend = clone($daoFriend);
+//          $copyFriend->entity_id = $newEventObject->id;
+//          unset($copyFriend->id);
+//          $copyFriend->save();
+//          CRM_Core_BAO_RecurringEntity::quickAdd($daoFriend->id, $copyFriend->id, 'civicrm_tell_friend');
+//        }
+//
+//        //copy PCP
+//        $daoPCP = new CRM_PCP_DAO_PCPBlock();
+//        $daoPCP->entity_id = $params['parent_event_id'];
+//        $daoPCP->entity_table = 'civicrm_event';
+//        if($daoPCP->find(TRUE)){
+//          $copyPCP = clone($daoPCP);
+//          $copyPCP->entity_id = $newEventObject->id;
+//          unset($copyPCP->id);
+//          $copyPCP->save();
+//          CRM_Core_BAO_RecurringEntity::quickAdd($daoPCP->id, $copyPCP->id, 'civicrm_pcp_block');
+//        }
+//      }
       //CRM_Core_Error::debug($form->_generatedDates);exit;
       CRM_Core_BAO_RecurringEntity::quickAdd($params['parent_event_id'], $params['parent_event_id'], 'civicrm_event');
     }

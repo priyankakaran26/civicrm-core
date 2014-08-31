@@ -64,7 +64,7 @@
           </tr>*}
           <tr class="crm-core-form-recurringentity-block-ends">
             <td class="label">{$form.ends.label}</td>
-            <td>{$form.ends.1.html}&nbsp;{$form.start_action_offset.html}&nbsp;occurrences {help id="id-ends-after"}</td>
+            <td>{$form.ends.1.html}&nbsp;{$form.start_action_offset.html}&nbsp;occurrences{help id="id-ends-after"}</td>
           </tr>
           <tr class="crm-core-form-recurringentity-block-absolute_date">
               <td class="label"></td>
@@ -107,9 +107,6 @@
     }
     #start_action_offset{
         width: 40px;
-    }
-    #limit_to{
-        width:40px;
     }
     /*input[disabled="disabled"], select[disabled="disabled"]{
         background-color: #EBEBE4 !important;
@@ -222,7 +219,30 @@
         });
         var completeDateText = dateTxt.join(',');
         cj('#copyExcludeDates').val(completeDateText);
+        
+        //Check form for values submitted
+        /*if(cj('input[name=ends]:checked').val() == 1){
+            if(cj('#start_action_offset').val() == ""){
+                if(!cj('span#start_action_offset-error').length){
+                    cj('#start_action_offset').after('<span id ="start_action_offset-error" class="crm-error"> This is a required field.</span>');
+                    //Check if other message already present, hide it
+                    cj('span#repeat_absolute_date_display-error').toggle();
+                }
+                return false;
+            }
+        }else if (cj('input[name=ends]:checked').val() == 2){
+            if(cj('#repeat_absolute_date_display').val() == ""){
+                if(!cj('span#repeat_absolute_date_display-error').length){
+                    cj('#repeat_absolute_date_display').after('<span id="repeat_absolute_date_display-error" class="crm-error"> This is a required field.</span>');
+                    //Check if other message already present, hide it
+                    cj('span#start_action_offset-error').toggle();
+                }
+                return false;
+            }
+        }*/
+        
     });
+    
     
     //Dialog for changes in repeat configuration
     cj('#dialog').dialog({ autoOpen: false });
@@ -271,26 +291,7 @@
         return false;
     });
     
-    //Build Summary
-/*    var summary = '';
-    cj('#repetition_frequency_unit').change(function () {
-        if(cj(this).val() == "day"){
-            summary = "Daily";
-        }else{
-            summary = cj(this).val() + "ly";
-        }
-        cj('#rec-summary').text(summary);
-    });
-    cj('#repetition_frequency_interval').change(function () {
-        summary = cj('#rec-summary').text();
-        if(cj(this).val() != 1){
-            summary_int = "Every " + cj(this).val() + " " + summary.substr(0, summary.length-2) + "s";
-            cj('#rec-summary').text(summary);
-        }else{
-            cj('#rec-summary').text(cj('#repetition_frequency_unit option:selected').val());
-        }
-        
-    });*/
+    //Build Sumamry
     var finalSummary = '';
     var numberText = '';
     if(cj('#repetition_frequency_interval').val() != 1){
@@ -365,6 +366,9 @@
                     }
             }
         }
+    }
+    function mytest(){
+        alert("hieeeeeeeeeee");
     }
 </script>
 {/literal}  
