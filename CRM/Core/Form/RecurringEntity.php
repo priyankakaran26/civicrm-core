@@ -444,84 +444,72 @@ class CRM_Core_Form_RecurringEntity {
     if(!empty($startDate) && !empty($buildRule) && !empty($params)){
       //Proceed only if these keys are found in array
       if(CRM_Utils_Array::value('parent_event_start_date', $params) && CRM_Utils_Array::value('parent_event_end_date', $params) && CRM_Utils_Array::value('parent_event_id', $params))
-//      echo $buildRule;
       $r->recur($startDate)->rrule("$buildRule");
-//      while($result = $r->next()){
-//        //$result->format('YmdHis'). '<br />';
-//        
-//        $newParams['start_date'] = $form->_generatedDates['start_date'][] = CRM_Utils_Date::processDate($result->format('YmdHis'));
-//        
-//        $parentStartDate = strtotime($params['parent_event_start_date']);
-//        $parentEndDate = strtotime($params['parent_event_end_date']);
-//        $diff = abs($parentEndDate - $parentStartDate);
-//        $years   = floor($diff / (365*60*60*24)); 
-//        $months  = floor(($diff - $years * 365*60*60*24) / (30*60*60*24)); 
-//        $days    = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24)); 
-//        $hours   = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24)/ (60*60));
-//        $minutes  = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60)/ 60); 
-//        $seconds = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60 - $minutes*60));
-//        $end_date = CRM_Utils_Date::processDate(date('YmdHis', strtotime($newParams['start_date']. ' + '.$years.' years + '.$months.' months + '.$days.' days + '.$hours.' hours + '.$minutes.' minutes + '.$seconds.' seconds')));
-//        $newParams['end_date'] = $form->_generatedDates['end_date'][] = $end_date;
-//        $form->_generatedDates['complete_date_range'][] = $newParams['start_date']." - ".$newParams['end_date'];
-//        $daoObject = new CRM_Event_DAO_Event();
-//        $daoObject->id = $params['parent_event_id'];
-//        if($daoObject->find(TRUE)){
-//          $newEventObject = clone($daoObject);
-//          unset($newEventObject->id);
-//          $newEventObject->start_date = $newParams['start_date'];
-//          $newEventObject->end_date = $newParams['end_date'];
-//          $newEventObject->created_date = date('YmdHis');
-//          $newEventObject->save();
-//          CRM_Core_BAO_RecurringEntity::quickAdd($daoObject->id, $newEventObject->id, 'civicrm_event');
-//        }
-//        
-//        //Copy Priceset
-//        $daoPriceSet = new CRM_Price_DAO_PriceSetEntity();
-//        $daoPriceSet->entity_id = $params['parent_event_id'];
-//        $daoPriceSet->entity_table = 'civicrm_event';
-//        if($daoPriceSet->find(TRUE)){
-//          $copyPriceSet = clone($daoPriceSet);
-//          $copyPriceSet->entity_id = $newEventObject->id;
-//          unset($copyPriceSet->id);
-//          $copyPriceSet->save();
-//        }
-//        
-//        //copy UF
-//        $daoUF = new CRM_Core_DAO_UFJoin();
-//        $daoUF->entity_id = $params['parent_event_id'];
-//        $daoUF->entity_table = 'civicrm_event';
-//        if($daoUF->find(TRUE)){
-//          $copyUF = clone($daoUF);
-//          $copyUF->entity_id = $newEventObject->id;
-//          unset($copyUF->id);
-//          $copyUF->save();
-//        }
-//        
-//        //copy Friend
-//        $daoFriend = new CRM_Friend_DAO_Friend();
-//        $daoFriend->entity_id = $params['parent_event_id'];
-//        $daoFriend->entity_table = 'civicrm_event';
-//        if($daoFriend->find(TRUE)){
-//          $copyFriend = clone($daoFriend);
-//          $copyFriend->entity_id = $newEventObject->id;
-//          unset($copyFriend->id);
-//          $copyFriend->save();
-//          CRM_Core_BAO_RecurringEntity::quickAdd($daoFriend->id, $copyFriend->id, 'civicrm_tell_friend');
-//        }
-//
-//        //copy PCP
-//        $daoPCP = new CRM_PCP_DAO_PCPBlock();
-//        $daoPCP->entity_id = $params['parent_event_id'];
-//        $daoPCP->entity_table = 'civicrm_event';
-//        if($daoPCP->find(TRUE)){
-//          $copyPCP = clone($daoPCP);
-//          $copyPCP->entity_id = $newEventObject->id;
-//          unset($copyPCP->id);
-//          $copyPCP->save();
-//          CRM_Core_BAO_RecurringEntity::quickAdd($daoPCP->id, $copyPCP->id, 'civicrm_pcp_block');
-//        }
-//      }
-      //CRM_Core_Error::debug($form->_generatedDates);exit;
+      while($result = $r->next()){
+        //$result->format('YmdHis'). '<br />';
+        
+        $newParams['start_date'] = $form->_generatedDates['start_date'][] = CRM_Utils_Date::processDate($result->format('YmdHis'));
+        
+        $parentStartDate = strtotime($params['parent_event_start_date']);
+        $parentEndDate = strtotime($params['parent_event_end_date']);
+        $diff = abs($parentEndDate - $parentStartDate);
+        $years   = floor($diff / (365*60*60*24)); 
+        $months  = floor(($diff - $years * 365*60*60*24) / (30*60*60*24)); 
+        $days    = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24)); 
+        $hours   = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24)/ (60*60));
+        $minutes  = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60)/ 60); 
+        $seconds = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60 - $minutes*60));
+        $end_date = CRM_Utils_Date::processDate(date('YmdHis', strtotime($newParams['start_date']. ' + '.$years.' years + '.$months.' months + '.$days.' days + '.$hours.' hours + '.$minutes.' minutes + '.$seconds.' seconds')));
+        $newParams['end_date'] = $form->_generatedDates['end_date'][] = $end_date;
+        $form->_generatedDates['complete_date_range'][] = $newParams['start_date']." - ".$newParams['end_date'];
+
+        $newEventObj = CRM_Core_BAO_RecurringEntity::copyCreateEntity('civicrm_event', 
+          array('id' => $params['parent_event_id']), 
+          $newParams);
+
+
+        CRM_Core_BAO_RecurringEntity::copyCreateEntity('civicrm_price_set_entity', 
+          array(
+            'entity_id' => $params['parent_event_id'], 
+            'entity_table' => 'civicrm_event'
+          ), 
+          array(
+            'entity_id' => $newEventObj->id
+          ),
+          FALSE
+        );
+
+        CRM_Core_BAO_RecurringEntity::copyCreateEntity('civicrm_uf_join', 
+          array(
+            'entity_id' => $params['parent_event_id'], 
+            'entity_table' => 'civicrm_event'
+          ), 
+          array(
+            'entity_id' => $newEventObj->id
+          ),
+          FALSE
+        );
+
+        CRM_Core_BAO_RecurringEntity::copyCreateEntity('civicrm_tell_friend', 
+          array(
+            'entity_id' => $params['parent_event_id'], 
+            'entity_table' => 'civicrm_event'
+          ), 
+          array(
+            'entity_id' => $newEventObj->id
+          )
+        );
+
+        CRM_Core_BAO_RecurringEntity::copyCreateEntity('civicrm_pcp_block', 
+          array(
+            'entity_id' => $params['parent_event_id'], 
+            'entity_table' => 'civicrm_event'
+          ), 
+          array(
+            'entity_id' => $newEventObj->id
+          )
+        );
+      }
       CRM_Core_BAO_RecurringEntity::quickAdd($params['parent_event_id'], $params['parent_event_id'], 'civicrm_event');
     }
     return;

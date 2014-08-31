@@ -36,7 +36,13 @@
 class CRM_Core_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntity {
 
   static $_tableDAOMapper = 
-    array('civicrm_event' => 'CRM_Event_DAO_Event');
+    array(
+      'civicrm_event' => 'CRM_Event_DAO_Event',
+      'civicrm_price_set_entity' => 'CRM_Price_DAO_PriceSetEntity',
+      'civicrm_uf_join'     => 'CRM_Core_DAO_UFJoin',
+      'civicrm_tell_friend' => 'CRM_Friend_DAO_Friend',
+      'civicrm_pcp_block'   => 'CRM_PCP_DAO_PCPBlock',
+    );
 
   static function add(&$params) {
     if (CRM_Utils_Array::value('id', $params)) {
@@ -116,6 +122,23 @@ class CRM_Core_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntity {
         )
       );
     return $parentId;
+  }
+
+  //static public function copyCreateEntity('civicrm_event', array('id' => $params['parent_event_id'], $newParams) {
+  static public function copyCreateEntity($entityTable, $fromCriteria, $newParams, $createRecurringEntity = TRUE) {
+    $daoName = self::$_tableDAOMapper[$entityTable];
+    $newObject = CRM_Core_DAO::copyGeneric($daoName, $fromCriteria, $newParams);
+
+    if ($newObject->id && $createRecurringEntity) {
+      $object = new $daoName( );
+      foreach ($fromCriteria as $key => $value) {
+        $object->$key = $value;
+      }
+      $object->find(TRUE);
+
+      CRM_Core_BAO_RecurringEntity::quickAdd($object->id, $newObject->id, $entityTable);
+    }
+    return $newObject;
   }
 
   static public function triggerUpdate($obj) {
