@@ -90,6 +90,8 @@ class CRM_Event_Form_ManageEvent_Repeat extends CRM_Event_Form_ManageEvent {
       $this->_scheduleReminderDetails = CRM_Core_Form_RecurringEntity::getReminderDetailsByEventId($this->_id);
       $this->_parentEventId = $this->_id;
     }
+    //Assign this to hide summary
+    $this->assign('scheduleReminderId', $this->_scheduleReminderDetails->id);
     
     $parentEventParams = array('id' => $this->_id);
     $parentEventValues = array();

@@ -221,7 +221,7 @@
         cj('#copyExcludeDates').val(completeDateText);
         
         //Check form for values submitted
-        /*if(cj('input[name=ends]:checked').val() == 1){
+        if(cj('input[name=ends]:checked').val() == 1){
             if(cj('#start_action_offset').val() == ""){
                 if(!cj('span#start_action_offset-error').length){
                     cj('#start_action_offset').after('<span id ="start_action_offset-error" class="crm-error"> This is a required field.</span>');
@@ -239,7 +239,7 @@
                 }
                 return false;
             }
-        }*/
+        }
         
     });
     
@@ -291,41 +291,45 @@
         return false;
     });
     
-    //Build Sumamry
+    //Build Summary
     var finalSummary = '';
     var numberText = '';
     if(cj('#repetition_frequency_interval').val() != 1){
         numberText = 's';
     }
-    finalSummary = "Every " + cj('#repetition_frequency_interval').val() + ' ' + cj('#repetition_frequency_unit option:selected').val().substr(0, 1).toUpperCase() + cj('#repetition_frequency_unit option:selected').val().substr(1).toLowerCase() + numberText;
+    finalSummary = "Every " + cj('#repetition_frequency_interval').val() + ' ' + cj('#repetition_frequency_unit option:selected').val() + numberText;
     
     //Case Week
     var dayOfWeek = new Array();
-    cj("input[name^='start_action_condition']:checked").each(function() {
-        var tempArray = new Array();
-        var thisID = cj(this).attr('id');
-        tempArray = thisID.split('_');
-        dayOfWeek.push(tempArray[3].substr(0, 1).toUpperCase() + tempArray[3].substr(1).toLowerCase());
+    if(cj('#repetition_frequency_unit option:selected').val() == "week"){
+        cj("input[name^='start_action_condition']:checked").each(function() {
+            var tempArray = new Array();
+            var thisID = cj(this).attr('id');
+            tempArray = thisID.split('_');
+            dayOfWeek.push(tempArray[3].substr(0, 1).toUpperCase() + tempArray[3].substr(1).toLowerCase());
+        });
         finalSummary += ' on ' + dayOfWeek.join();
-    });
+    }
     
     //Case Monthly
-    if(cj('input:radio[name=repeats_by]:checked').val() == 1){
-        finalSummary = cj('#repetition_frequency_unit option:selected').val().substr(0, 1).toUpperCase() + cj('#repetition_frequency_unit option:selected').val().substr(1).toLowerCase() + 'ly' + ' on day ' + cj('#limit_to').val();
-    }
-    if(cj('input:radio[name=repeats_by]:checked').val() == 2){
-        finalSummary = cj('#repetition_frequency_unit option:selected').val().substr(0, 1).toUpperCase() + cj('#repetition_frequency_unit option:selected').val().substr(1).toLowerCase() + 'ly' + ' on the ' + cj('#start_action_date_1').val().substr(0, 1).toUpperCase() + cj('#start_action_date_1').val().substr(1).toLowerCase() + ' ' + cj('#start_action_date_2').val().substr(0, 1).toUpperCase() + cj('#start_action_date_2').val().substr(1).toLowerCase();
+    if(cj('#repetition_frequency_unit option:selected').val() == "month"){
+        if(cj('input:radio[name=repeats_by]:checked').val() == 1){
+            finalSummary += ' on day ' + cj('#limit_to').val();
+        }
+        if(cj('input:radio[name=repeats_by]:checked').val() == 2){
+            finalSummary += ' on ' + cj('#start_action_date_1').val().substr(0, 1).toUpperCase() + cj('#start_action_date_1').val().substr(1).toLowerCase() + ' ' + cj('#start_action_date_2').val().substr(0, 1).toUpperCase() + cj('#start_action_date_2').val().substr(1).toLowerCase();
+        }
     }
     
     //Case Ends
     if(cj('input:radio[name=ends]:checked').val() == 1){
         var timeText = ''
         if(cj('#start_action_offset').val() != 1){
-            timeText = ' times';
+            timeText = cj('#start_action_offset').val() + ' times';
         }else{
             timeText = ' once';
         }
-        finalSummary += ', ' + cj('#start_action_offset').val() + timeText;
+        finalSummary += ', ' + timeText;
     }
     if(cj('input:radio[name=ends]:checked').val() == 2){
         var monthNames = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
@@ -339,7 +343,7 @@
                   default: return "th";
               }
           } 
-        var newDate = monthNames[(date.getMonth() + 1)] + ' ' + date.getDate()+ addOrdinal() + ' ' +  date.getFullYear();
+        var newDate = monthNames[(date.getMonth())] + ' ' + date.getDate()+ addOrdinal() + ' ' +  date.getFullYear();
         finalSummary += ', untill '+ newDate;
     }
     
@@ -366,9 +370,6 @@
                     }
             }
         }
-    }
-    function mytest(){
-        alert("hieeeeeeeeeee");
     }
 </script>
 {/literal}  
