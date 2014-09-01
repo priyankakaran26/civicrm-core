@@ -292,25 +292,18 @@ class CRM_Core_Form_RecurringEntity {
       while($result = $recursionObj->next()){
         //$result->format('YmdHis'). '<br />';
         
-        $newParams['start_date'] = $form->_generatedDates['start_date'][] = CRM_Utils_Date::processDate($result->format('YmdHis'));
-        
-        $parentStartDate = strtotime($params['parent_event_start_date']);
-        $parentEndDate = strtotime($params['parent_event_end_date']);
-        $diff = abs($parentEndDate - $parentStartDate);
-        $years   = floor($diff / (365*60*60*24)); 
-        $months  = floor(($diff - $years * 365*60*60*24) / (30*60*60*24)); 
-        $days    = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24)); 
-        $hours   = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24)/ (60*60));
-        $minutes  = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60)/ 60); 
-        $seconds = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60 - $minutes*60));
-        $end_date = CRM_Utils_Date::processDate(date('YmdHis', strtotime($newParams['start_date']. ' + '.$years.' years + '.$months.' months + '.$days.' days + '.$hours.' hours + '.$minutes.' minutes + '.$seconds.' seconds')));
-        $newParams['end_date'] = $form->_generatedDates['end_date'][] = $end_date;
+        $newParams['start_date'] = $form->_generatedDates['start_date'][] = CRM_Utils_Date::processDate($result->format('Y-m-d H:i:s'));
+        $parentStartDate = new DateTime($params['parent_event_start_date']);
+        $parentEndDate = new DateTime($params['parent_event_end_date']);
+        $interval = $parentStartDate->diff($parentEndDate);
+        $end_date = new DateTime($newParams['start_date']);
+        $end_date->add($interval);
+        $newParams['end_date'] = $form->_generatedDates['end_date'][] = CRM_Utils_Date::processDate($end_date->format('Y-m-d H:i:s'));
         $form->_generatedDates['complete_date_range'][] = $newParams['start_date']." - ".$newParams['end_date'];
 
         $newEventObj = CRM_Core_BAO_RecurringEntity::copyCreateEntity('civicrm_event', 
           array('id' => $params['parent_event_id']), 
           $newParams);
-
 
         CRM_Core_BAO_RecurringEntity::copyCreateEntity('civicrm_price_set_entity', 
           array(
