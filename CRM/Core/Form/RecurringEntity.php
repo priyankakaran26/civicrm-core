@@ -39,12 +39,6 @@ require_once 'packages/When-master/When.php';
  *
  */
 class CRM_Core_Form_RecurringEntity {
-  
-  /**
-   * Store generated dates for entity
-   */
-  protected $_generatedDates = array();
-  
   /**
    * action
    *
@@ -121,8 +115,6 @@ class CRM_Core_Form_RecurringEntity {
         ),
       )
     );
-    $form->_generatedDates = array(1 => array(2,4,5));
-    $form->assign('generatedDates', $form->_generatedDates);
   }
 
   /**
@@ -292,14 +284,13 @@ class CRM_Core_Form_RecurringEntity {
       while($result = $recursionObj->next()){
         //$result->format('YmdHis'). '<br />';
         
-        $newParams['start_date'] = $form->_generatedDates['start_date'][] = CRM_Utils_Date::processDate($result->format('Y-m-d H:i:s'));
+        $newParams['start_date'] = CRM_Utils_Date::processDate($result->format('Y-m-d H:i:s'));
         $parentStartDate = new DateTime($params['parent_event_start_date']);
         $parentEndDate = new DateTime($params['parent_event_end_date']);
         $interval = $parentStartDate->diff($parentEndDate);
         $end_date = new DateTime($newParams['start_date']);
         $end_date->add($interval);
-        $newParams['end_date'] = $form->_generatedDates['end_date'][] = CRM_Utils_Date::processDate($end_date->format('Y-m-d H:i:s'));
-        $form->_generatedDates['complete_date_range'][] = $newParams['start_date']." - ".$newParams['end_date'];
+        $newParams['end_date'] = CRM_Utils_Date::processDate($end_date->format('Y-m-d H:i:s'));
 
         $newEventObj = CRM_Core_BAO_RecurringEntity::copyCreateEntity('civicrm_event', 
           array('id' => $params['parent_event_id']), 

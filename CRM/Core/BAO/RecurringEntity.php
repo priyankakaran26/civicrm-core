@@ -252,9 +252,13 @@ class CRM_Core_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntity {
                 FROM civicrm_action_schedule WHERE 1";
       if($scheduleReminderId){
         $query .= "
-        AND id = {$scheduleReminderId}";
+        AND id = %1";
       }
-      $dao = CRM_Core_DAO::executeQuery($query);
+      $dao = CRM_Core_DAO::executeQuery($query,
+            array(
+              1 => array($scheduleReminderId, 'Integer')
+            )
+          );
       $dao->fetch();
       return $dao;
     }

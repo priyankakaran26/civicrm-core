@@ -294,10 +294,13 @@
     //Build Summary
     var finalSummary = '';
     var numberText = '';
-    if(cj('#repetition_frequency_interval').val() != 1){
+    var interval = cj('#repetition_frequency_interval').val() + ' ';
+    if(cj('#repetition_frequency_interval').val() == 1){
+        interval = '';
+    }else{
         numberText = 's';
     }
-    finalSummary = "Every " + cj('#repetition_frequency_interval').val() + ' ' + cj('#repetition_frequency_unit option:selected').val() + numberText;
+    finalSummary = "Every " + interval + cj('#repetition_frequency_unit option:selected').val() + numberText;
     
     //Case Week
     var dayOfWeek = new Array();
