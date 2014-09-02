@@ -265,6 +265,7 @@ class CRM_Core_Form_RecurringEntity {
     if(!empty($recurResult)){
       self::addEntityThroughRecursion($recurResult, $params['parent_event_id']);
     }
+    CRM_Core_Session::setStatus($status, ts('Repeat Configuration Saved'), 'success');
   }
   //end of function
 

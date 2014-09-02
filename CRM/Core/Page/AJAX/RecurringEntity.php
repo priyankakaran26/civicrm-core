@@ -57,8 +57,8 @@ class CRM_Core_Page_Ajax_RecurringEntity {
         $recurDates = array();
         $count = 1;
         foreach ($recurResult as $key => $value) {
-          $recurDates[$count]['start_date'] = date('Y-m-d H:i:s', strtotime($value['start_date']));
-          $recurDates[$count]['end_date'] = date('Y-m-d H:i:s', strtotime($value['end_date']));
+          $recurDates[$count]['start_date'] = date('M d, Y h:i:s A \o\n l', strtotime($value['start_date']));
+          $recurDates[$count]['end_date'] = date('M d, Y h:i:s A \o\n l', strtotime($value['end_date']));
           $count++;
         }
       }

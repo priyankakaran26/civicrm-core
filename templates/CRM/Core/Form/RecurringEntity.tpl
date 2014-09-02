@@ -268,10 +268,10 @@
     //Dialog for preview repeat Configuration dates
     cj('#preview-dialog').dialog({ autoOpen: false });
     cj('#_qf_Repeat_submit-top, #_qf_Repeat_submit-bottom').click( function (){
-        cj('#generated_dates').html('').html('<span id="loading">Generating event dates.......</span>');
+        cj('#generated_dates').html('').html('<div class="crm-loading-element"><span class="loading-text">{/literal}{ts escape='js'}Just a moment, generating dates{/ts}{literal}...<img src="{/literal}{$config->resourceBase}{literal}i/loading.gif" /></span></div>');
         cj('#preview-dialog').dialog('open');
         cj('#preview-dialog').dialog({
-            title: 'Event dates',
+            title: 'Confirm event dates',
             width: '600',
             position: 'center',
             //draggable: false,
@@ -297,7 +297,7 @@
           data: formData,
           url:  ajaxurl,
           success: function (result) {
-             var html = 'List of generated event dates, Do you wish to proceed ?<br/><br/><table id="options" class="display"><thead><tr><th>Sr No</th><th>Start date</th><th>End date</th></tr><thead>';
+             var html = 'Based on your repeat configuration here is the list of event dates, Do you wish to proceed creating events for these dates?<br/><br/><table id="options" class="display"><thead><tr><th>Sr No</th><th>Start date</th><th>End date</th></tr><thead>';
              var count = 1;
              for(var i in result) {
                 var start_date = result[i].start_date;
