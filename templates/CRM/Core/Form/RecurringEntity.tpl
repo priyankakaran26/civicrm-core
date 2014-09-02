@@ -92,11 +92,7 @@
     Changing Repeat configuration may affect all other connected repeating events, Are you sure?
 </div>
 <div id="preview-dialog" style="display:none">
-    Here is the list of generated event dates, Do you wish to proceed?
-    <br/>
-    {foreach from=$generatedDates key=keys item=row}
-        <div style="display:block;">{$row}</div>
-    {/foreach}
+    <div style="display:block;" id="generated_dates"></div>
     
 </div>
 {literal}
@@ -245,7 +241,7 @@
     
     
     //Dialog for changes in repeat configuration
-    cj('#dialog').dialog({ autoOpen: false });
+/*    cj('#dialog').dialog({ autoOpen: false });
     cj('#_qf_Repeat_submit-top, #_qf_Repeat_submit-bottom').click(
         function () {
             cj('#dialog').dialog('open');
@@ -267,26 +263,54 @@
             });
             return false;
         }
-    );
+    );*/
     
     //Dialog for preview repeat Configuration dates
     cj('#preview-dialog').dialog({ autoOpen: false });
-    cj('#_qf_Repeat_button-top, #_qf_Repeat_button-bottom').click( function (){
+    cj('#_qf_Repeat_submit-top, #_qf_Repeat_submit-bottom').click( function (){
+        cj('#generated_dates').html('').html('<span id="loading">Generating event dates.......</span>');
         cj('#preview-dialog').dialog('open');
         cj('#preview-dialog').dialog({
-            title: 'Save recurring event',
+            title: 'Event dates',
             width: '600',
             position: 'center',
             //draggable: false,
             buttons: {
-                Yes: function() {
+                Ok: function() {
                     cj(this).dialog( "close" );
                     cj('form').submit();
                 },
-                No: function() { //cancel
+                Cancel: function() { //cancel
                     cj(this).dialog( "close" );
                 }
             }
+        });
+        var ajaxurl = CRM.url("civicrm/ajax/recurringEntity/generate_preview");
+        var eventID = {/literal}{$currentEntityId}{literal};
+        if(eventID != ""){
+            ajaxurl += "?event_id="+eventID;
+        }
+        var formData = cj('form').serializeArray();
+        cj.ajax({
+          dataType: "json",
+          type: "POST",
+          data: formData,
+          url:  ajaxurl,
+          success: function (result) {
+             var html = 'List of generated event dates, Do you wish to proceed ?<br/><br/><table id="options" class="display"><thead><tr><th>Sr No</th><th>Start date</th><th>End date</th></tr><thead>';
+             var count = 1;
+             for(var i in result) {
+                var start_date = result[i].start_date;
+                var end_date = result[i].end_date;
+                html += '<tr><td>'+count+'</td><td>'+start_date+'</td><td>'+end_date+'</td></tr>';
+                count = count + 1;
+            }
+            html += '</table>';
+            cj('#generated_dates').html(html);
+          },
+          complete: function(){
+            cj('#loading').hide();
+          }
         });
         return false;
     });

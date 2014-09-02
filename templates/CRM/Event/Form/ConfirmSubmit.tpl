@@ -81,16 +81,14 @@
             cj(".this-and-all-following-event").click(function(){
                 var eventID ={/literal}{$id}{literal};
                 if(eventID != ""){
-                    var ajaxurl = CRM.url("civicrm/ajax/recurringEntity");
+                    var ajaxurl = CRM.url("civicrm/ajax/recurringEntity/update_cascade_type");
                     var data    = {cascadeType: 2, entityId: eventID};
                     cj.ajax({
                       dataType: "json",
                       data: data,
                       url:  ajaxurl,
                       success: function (result) {
-                          alert("hieeeeeee");
                           cj("#dialog").dialog('close');
-    //                      alert("Changes Saved");
                       }
                     });
                 }

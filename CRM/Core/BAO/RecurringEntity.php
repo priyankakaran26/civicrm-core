@@ -34,6 +34,7 @@
  */
 
 require_once 'packages/When-master/When.php'; 
+
 class CRM_Core_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntity {
 
   static $_tableDAOMapper = 
@@ -239,11 +240,6 @@ class CRM_Core_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntity {
           $dbParams['absolute_date'] = CRM_Utils_Date::processDate($formParams['repeat_absolute_date']);
         }
       }
-
-      if(CRM_Utils_Array::value('id', $formParams)){
-        CRM_Core_BAO_ActionSchedule::del($formParams['id']);
-        unset($formParams['id']);
-      }
       return $dbParams;
     }
 
@@ -264,86 +260,92 @@ class CRM_Core_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntity {
     }
     
     static function getRecursionFromReminder($scheduleReminderId){
-        $r = new When();
-        if($scheduleReminderId){
-          //Get all the details from schedule reminder table
-          $scheduleReminderDetails = self::getScheduleReminderDetailsById($scheduleReminderId);
-          //If there is some data for this id
-          if($scheduleReminderDetails->id){
-            $currDate = date("Y-m-d H:i:s");
-            $start = new DateTime($currDate);
-            if($scheduleReminderDetails->repetition_frequency_unit){
-              $repetition_frequency_unit = $scheduleReminderDetails->repetition_frequency_unit;
-              if($repetition_frequency_unit == "day"){
-                $repetition_frequency_unit = "dai";
-              }
-              $repetition_frequency_unit = $repetition_frequency_unit.'ly';
-              $r->recur($start, $repetition_frequency_unit);
-            }
-            
-            if($scheduleReminderDetails->repetition_frequency_interval){
-              $r->interval($scheduleReminderDetails->repetition_frequency_interval);
-            }
-            
-            //week
-            if($scheduleReminderDetails->repetition_frequency_unit == 'week'){
-              if($scheduleReminderDetails->start_action_condition){
-                $startActionCondition = $scheduleReminderDetails->start_action_condition;
-                $explodeStartActionCondition = explode(',', $startActionCondition);
-                $buildRuleArray = array();
-                foreach($explodeStartActionCondition as $key => $val){
-                  $buildRuleArray[] = strtoupper(substr($val, 0, 2));
-                }
-  //              CRM_Core_Error::debug('$buildRuleArray', $buildRuleArray);exit;
-                $r->wkst('MO')->byday($buildRuleArray);
-              }
-            }
-            
-            //month 
-            if($scheduleReminderDetails->repetition_frequency_unit == 'month'){
-              if($scheduleReminderDetails->limit_to){
-                $r->bymonthday(array($scheduleReminderDetails->limit_to));
-              }
-              if($scheduleReminderDetails->start_action_date){
-                $startActionDate = explode(" ", $scheduleReminderDetails->start_action_date);
-                switch ($startActionDate[0]) {
-                  case 'first':
-                      $startActionDate1 = 1;
-                      break;
-                  case 'second':
-                      $startActionDate1 = 2;
-                      break;
-                  case 'third':
-                      $startActionDate1 = 3;
-                      break;
-                  case 'fourth':
-                      $startActionDate1 = 4;
-                      break;
-                  case 'last':
-                      $startActionDate1 = -1;
-                      break;
-                }
-                $concatStartActionDateBits = $startActionDate1.strtoupper(substr($startActionDate[1], 0, 2));
-                $r->byday(array($concatStartActionDateBits));
-              }
-            }
-            
-            //Ends
-            if($scheduleReminderDetails->start_action_offset){
-              $r->count($scheduleReminderDetails->start_action_offset);
-            }
-            
-            if($scheduleReminderDetails->absolute_date){
-              $absoluteDate = CRM_Utils_Date::setDateDefaults($scheduleReminderDetails->absolute_date);
-              $endDate = new DateTime($absoluteDate[0].' '.$absoluteDate[1]);
-              $r->until($endDate);
-            }
-            
-            if(!$scheduleReminderDetails->start_action_offset && !$scheduleReminderDetails->absolute_date){
-              CRM_Core_Error::fatal("Could not find end limit for repeat configuration");
-            }
-         }
+      if($scheduleReminderId){
+        //Get all the details from schedule reminder table
+        $scheduleReminderDetails = self::getScheduleReminderDetailsById($scheduleReminderId);
+        $scheduleReminderDetails = (array) $scheduleReminderDetails;
+        $recursionDetails = self::getRecursionFromReminderByDBParams($scheduleReminderDetails);
       }
+      return $recursionDetails;
+    }
+    
+    static function getRecursionFromReminderByDBParams($scheduleReminderDetails = array()){
+      $r = new When();
+      //If there is some data for this id
+      if($scheduleReminderDetails['repetition_frequency_unit']){
+        $currDate = date("Y-m-d H:i:s");
+        $start = new DateTime($currDate);
+        if($scheduleReminderDetails['repetition_frequency_unit']){
+          $repetition_frequency_unit = $scheduleReminderDetails['repetition_frequency_unit'];
+          if($repetition_frequency_unit == "day"){
+            $repetition_frequency_unit = "dai";
+          }
+          $repetition_frequency_unit = $repetition_frequency_unit.'ly';
+          $r->recur($start, $repetition_frequency_unit);
+        }
+
+        if($scheduleReminderDetails['repetition_frequency_interval']){
+          $r->interval($scheduleReminderDetails['repetition_frequency_interval']);
+        }
+
+        //week
+        if($scheduleReminderDetails['repetition_frequency_unit'] == 'week'){
+          if($scheduleReminderDetails['start_action_condition']){
+            $startActionCondition = $scheduleReminderDetails['start_action_condition'];
+            $explodeStartActionCondition = explode(',', $startActionCondition);
+            $buildRuleArray = array();
+            foreach($explodeStartActionCondition as $key => $val){
+              $buildRuleArray[] = strtoupper(substr($val, 0, 2));
+            }
+//              CRM_Core_Error::debug('$buildRuleArray', $buildRuleArray);exit;
+            $r->wkst('MO')->byday($buildRuleArray);
+          }
+        }
+
+        //month 
+        if($scheduleReminderDetails['repetition_frequency_unit'] == 'month'){
+          if($scheduleReminderDetails['limit_to']){
+            $r->bymonthday(array($scheduleReminderDetails['limit_to']));
+          }
+          if($scheduleReminderDetails['start_action_date']){
+            $startActionDate = explode(" ", $scheduleReminderDetails['start_action_date']);
+            switch ($startActionDate[0]) {
+              case 'first':
+                  $startActionDate1 = 1;
+                  break;
+              case 'second':
+                  $startActionDate1 = 2;
+                  break;
+              case 'third':
+                  $startActionDate1 = 3;
+                  break;
+              case 'fourth':
+                  $startActionDate1 = 4;
+                  break;
+              case 'last':
+                  $startActionDate1 = -1;
+                  break;
+            }
+            $concatStartActionDateBits = $startActionDate1.strtoupper(substr($startActionDate[1], 0, 2));
+            $r->byday(array($concatStartActionDateBits));
+          }
+        }
+
+        //Ends
+        if($scheduleReminderDetails['start_action_offset']){
+          $r->count($scheduleReminderDetails['start_action_offset']);
+        }
+
+        if($scheduleReminderDetails['absolute_date']){
+          $absoluteDate = CRM_Utils_Date::setDateDefaults($scheduleReminderDetails['absolute_date']);
+          $endDate = new DateTime($absoluteDate[0].' '.$absoluteDate[1]);
+          $r->until($endDate);
+        }
+
+        if(!$scheduleReminderDetails['start_action_offset'] && !$scheduleReminderDetails['absolute_date']){
+          CRM_Core_Error::fatal("Could not find end limit for repeat configuration");
+        }
+     }
       return $r;
     }
     
