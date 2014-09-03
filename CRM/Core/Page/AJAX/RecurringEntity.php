@@ -36,7 +36,6 @@ class CRM_Core_Page_Ajax_RecurringEntity {
   }
   
   public static function generatePreview(){
-    require_once 'packages/When-master/When.php'; 
     $params = $formValues = $recurDates = array();
     $formValues = $_REQUEST;
     if(!empty($formValues)){

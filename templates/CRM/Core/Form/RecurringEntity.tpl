@@ -91,7 +91,7 @@
 <div id="dialog" style="display:none">
     Changing Repeat configuration may affect all other connected repeating events, Are you sure?
 </div>
-<div id="preview-dialog" style="display:none; overflow-y: auto;">
+<div id="preview-dialog" style="display:none;height:auto;">
     <div style="display:block;" id="generated_dates"></div>
     
 </div>
@@ -315,7 +315,11 @@
             if(end_date_text == ""){
                 cj('#th-end-date').hide();
             }
-            cj('#preview-dialog').css('height', '320px');
+            if(cj("#preview-dialog").height() >= 300){
+                cj('#preview-dialog').css('height', '300');
+                cj('#preview-dialog').css('overflow-y', 'auto');
+            }
+                
           },
           complete: function(){
             cj('div.crm-loading-element').hide();
