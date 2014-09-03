@@ -93,7 +93,7 @@ class CRM_Core_Form_RecurringEntity {
     $form->addFormRule(array('CRM_Core_Form_RecurringEntity', 'formRule'));
     $form->addDate('repeat_absolute_date', ts('On'), FALSE, array('formatType' => 'mailing'));
     $form->addDate('exclude_date', ts('Exclude Date(s)'), FALSE);
-    $select = $form->add('select', 'exclude_date_list', ts(''), $form->_excludeDateInfo, array('style' => 'width:200px;', 'size' => 4));
+    $select = $form->add('select', 'exclude_date_list', ts(''), $form->_excludeDateInfo, FALSE, array('style' => 'width:200px;', 'size' => 4));
     $select->setMultiple(TRUE);
     $form->addElement('button','add_to_exclude_list','>>','onClick="addToExcludeList(document.getElementById(\'exclude_date\').value);"'); 
     $form->addElement('button','remove_from_exclude_list', '<<', 'onClick="removeFromExcludeList(\'exclude_date_list\')"'); 
@@ -265,7 +265,8 @@ class CRM_Core_Form_RecurringEntity {
     if(!empty($recurResult)){
       self::addEntityThroughRecursion($recurResult, $params['parent_event_id']);
     }
-    CRM_Core_Session::setStatus($status, ts('Repeat Configuration Saved'), 'success');
+    $status = ts('Repeat Configuration Saved');
+    CRM_Core_Session::setStatus($status, ts('Saved'), 'success');
   }
   //end of function
 
@@ -283,19 +284,22 @@ class CRM_Core_Form_RecurringEntity {
     $newParams = $recursionResult = array();
     if($recursionObj && !empty($params)){ 
       //Proceed only if these keys are found in array
-      if(CRM_Utils_Array::value('parent_event_start_date', $params) && CRM_Utils_Array::value('parent_event_end_date', $params) && CRM_Utils_Array::value('parent_event_id', $params)){
+      if(CRM_Utils_Array::value('parent_event_start_date', $params) && CRM_Utils_Array::value('parent_event_id', $params)){
         $count = 1;
         while($result = $recursionObj->next()){
           //$result->format('YmdHis'). '<br />';
           $newParams['start_date'] = CRM_Utils_Date::processDate($result->format('Y-m-d H:i:s'));
           $parentStartDate = new DateTime($params['parent_event_start_date']);
-          $parentEndDate = new DateTime($params['parent_event_end_date']);
-          $interval = $parentStartDate->diff($parentEndDate);
-          $end_date = new DateTime($newParams['start_date']);
-          $end_date->add($interval);
-          $newParams['end_date'] = CRM_Utils_Date::processDate($end_date->format('Y-m-d H:i:s'));
+          //If open ended event
+          if(CRM_Utils_Array::value('parent_event_end_date', $params)){
+            $parentEndDate = new DateTime($params['parent_event_end_date']);
+            $interval = $parentStartDate->diff($parentEndDate);
+            $end_date = new DateTime($newParams['start_date']);
+            $end_date->add($interval);
+            $newParams['end_date'] = CRM_Utils_Date::processDate($end_date->format('Y-m-d H:i:s'));
+            $recursionResult[$count]['end_date'] = $newParams['end_date'];
+          }
           $recursionResult[$count]['start_date'] = $newParams['start_date'];
-          $recursionResult[$count]['end_date'] = $newParams['end_date'];
           $count++;
         }
       }
