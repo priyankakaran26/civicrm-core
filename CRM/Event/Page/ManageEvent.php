@@ -305,10 +305,10 @@ ORDER BY start_date desc
     while ($dao->fetch()) {
       if (in_array($dao->id, $permissions[CRM_Core_Permission::VIEW])) {
         $manageEvent[$dao->id] = array();
-        $isRepeatingEvent = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($dao->id);
+        $isRepeatingEvent = CRM_Core_BAO_RecurringEntity::getParentFor($dao->id, 'civicrm_event');
         $manageEvent[$dao->id]['repeat'] = '';
-        if($isRepeatingEvent->parent_id){
-          if($dao->id == $isRepeatingEvent->parent_id){
+        if($isRepeatingEvent){
+          if($dao->id == $isRepeatingEvent){
             $manageEvent[$dao->id]['repeat'] = 'Repeating Event - (Parent)';
           }else{
             $manageEvent[$dao->id]['repeat'] = 'Repeating Event - (Child)';

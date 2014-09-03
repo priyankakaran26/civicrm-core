@@ -51,18 +51,18 @@ class CRM_Event_Form_ManageEvent_Repeat extends CRM_Event_Form_ManageEvent {
     parent::preProcess();
     $this->assign('currentEventId', $this->_id);
     
-    $checkParentExistsForThisId = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($this->_id);
-    $checkParentExistsForThisId->parent_id;
+    $checkParentExistsForThisId = CRM_Core_BAO_RecurringEntity::getParentFor($this->_id, 'civicrm_event');
+    $checkParentExistsForThisId;
     //If this ID has parent, send parent id
-    if($checkParentExistsForThisId->parent_id){
-      $this->_scheduleReminderDetails = CRM_Core_Form_RecurringEntity::getReminderDetailsByEventId($checkParentExistsForThisId->parent_id);
-      $this->_parentEventId = $checkParentExistsForThisId->parent_id;
+    if($checkParentExistsForThisId){
+      $this->_scheduleReminderDetails = CRM_Core_Form_RecurringEntity::getReminderDetailsByEventId($checkParentExistsForThisId);
+      $this->_parentEventId = $checkParentExistsForThisId;
       
       /**
      * Get connected event information list
      */
       //Get all connected event ids
-      $allEventIds = CRM_Core_Form_RecurringEntity::getAllConnectedEvents($checkParentExistsForThisId->parent_id);
+      $allEventIds = CRM_Core_Form_RecurringEntity::getAllConnectedEvents($checkParentExistsForThisId);
       if($allEventIds->entity_id){
         //echo "<pre>"; print_r($eventIds);
         //list($offset, $rowCount) = $this->_pager->getOffsetAndRowCount();

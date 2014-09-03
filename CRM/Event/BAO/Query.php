@@ -268,9 +268,9 @@ class CRM_Event_BAO_Query {
           $value = $extractEventId[2];
           unset($query->_where[$grouping][$key]);
         }
-        $thisEventHasParent = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($value);
-        if($thisEventHasParent->parent_id){
-          $getAllConnections = CRM_Core_Form_RecurringEntity::getAllConnectedEvents($thisEventHasParent->parent_id);
+        $thisEventHasParent = CRM_Core_BAO_RecurringEntity::getParentFor($value, 'civicrm_event');
+        if($thisEventHasParent){
+          $getAllConnections = CRM_Core_Form_RecurringEntity::getAllConnectedEvents($thisEventHasParent);
           if($getAllConnections->entity_id){
             $op = "IN";
             $value = "($getAllConnections->entity_id)";

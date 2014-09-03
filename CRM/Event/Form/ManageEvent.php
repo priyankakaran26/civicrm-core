@@ -84,6 +84,11 @@ class CRM_Event_Form_ManageEvent extends CRM_Core_Form {
    * the participant records
    */
   protected $_campaignID = NULL;
+  
+  /**
+   * Check if repeating event
+   */
+  protected $_isRepeatingEvent;
 
   /**
    * Function to set variables up before form is built
@@ -96,13 +101,14 @@ class CRM_Event_Form_ManageEvent extends CRM_Core_Form {
     if (in_array('CiviEvent', $config->enableComponents)) {
       $this->assign('CiviEvent', TRUE);
     }
-
+      
     $this->_action = CRM_Utils_Request::retrieve('action', 'String', $this, FALSE, 'add', 'REQUEST');
 
     $this->assign('action', $this->_action);
 
     $this->_id = CRM_Utils_Request::retrieve('id', 'Positive', $this, FALSE, NULL, 'GET');
     if ($this->_id) {
+      $this->_isRepeatingEvent = CRM_Core_BAO_RecurringEntity::getParentFor($this->_id, 'civicrm_event');
       $this->assign('eventId', $this->_id);
       if (empty($this->_addProfileBottom) && empty($this->_addProfileBottomAdd)) {
         $this->add('hidden', 'id', $this->_id);
@@ -151,8 +157,7 @@ class CRM_Event_Form_ManageEvent extends CRM_Core_Form {
         $configureText = ts('Configure Event');
         $title = CRM_Utils_Array::value('title', $eventInfo);
         //If it is a repeating event change title
-        $isRepeatingEvent = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($this->_id);
-        if($isRepeatingEvent->parent_id){
+        if($this->_isRepeatingEvent){
           $configureText = 'Configure Repeating Event';
         }
         CRM_Utils_System::setTitle($configureText . " - $title");
@@ -184,8 +189,7 @@ class CRM_Event_Form_ManageEvent extends CRM_Core_Form {
     $this->_templateId = (int) CRM_Utils_Request::retrieve('template_id', 'Integer', $this);
     
     //Is a repeating event
-    $isRepeatingEvent = CRM_Core_Form_RecurringEntity::checkParentExistsForThisId($this->_id);
-    if($isRepeatingEvent->parent_id){
+    if($this->_isRepeatingEvent){
       $isRepeat = 'repeat';
       $this->assign('isRepeat', $isRepeat);
     }
