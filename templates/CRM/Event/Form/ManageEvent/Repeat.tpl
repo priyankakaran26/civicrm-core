@@ -24,12 +24,12 @@
  +--------------------------------------------------------------------+
 *}
 <div class="crm-block crm-form-block crm-event-manage-repeat-form-block">
-    {include file="CRM/Core/Form/RecurringEntity.tpl"}
+{include file="CRM/Core/Form/RecurringEntity.tpl"}
+{if $rows}
 <div id="event_status_id" class="crm-block crm-manage-events crm-accordion-wrapper">
   <div class="crm-accordion-header">Connected Repeating Events</div>
   <div class="crm-accordion-body">
   {strip}
-  {include file="CRM/common/pager.tpl" location="top"}
   {include file="CRM/common/jsortable.tpl"}
     <table id="options" class="display">
       <thead>
@@ -75,6 +75,7 @@
   {/strip}
   </div>
 </div>
+{/if}
 </div>
 {*Hide Summary*}
 {if empty($scheduleReminderId)}

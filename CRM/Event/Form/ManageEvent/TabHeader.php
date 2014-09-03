@@ -132,6 +132,8 @@ LEFT JOIN  civicrm_action_mapping  map ON ( map.entity_value = 'civicrm_event' )
 LEFT JOIN  civicrm_action_schedule sch ON ( sch.mapping_id = map.id AND sch.entity_value = %1 )
 WHERE      e.id = %1
 ";
+      //Check if repeat is configured
+      $eventHasParent = CRM_Core_BAO_RecurringEntity::getParentFor($eventID, 'civicrm_event');
       $params = array(1 => array($eventID, 'Integer'));
       $dao = CRM_Core_DAO::executeQuery($sql, $params);
       if (!$dao->fetch()) {
@@ -154,6 +156,9 @@ WHERE      e.id = %1
       }
       if (!$dao->is_reminder) {
         $tabs['reminder']['valid'] = FALSE;
+      }
+      if(!$eventHasParent){
+        $tabs['repeat']['valid'] = FALSE;
       }
     }
 

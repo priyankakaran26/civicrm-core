@@ -91,7 +91,7 @@
 <div id="dialog" style="display:none">
     Changing Repeat configuration may affect all other connected repeating events, Are you sure?
 </div>
-<div id="preview-dialog" style="display:none">
+<div id="preview-dialog" style="display:none; overflow-y: auto;">
     <div style="display:block;" id="generated_dates"></div>
     
 </div>
@@ -297,7 +297,7 @@
           data: formData,
           url:  ajaxurl,
           success: function (result) {
-             var html = 'Based on your repeat configuration here is the list of event dates, Do you wish to proceed creating events for these dates?<br/><br/><table id="options" class="display"><thead><tr><th>Sr No</th><th>Start date</th><th id="th-end-date">End date</th></tr><thead>';
+             var html = 'Based on your repeat configuration here is the list of event dates, Do you wish to proceed creating events for these dates?<br/><table id="options" class="display"><thead><tr><th>Sr No</th><th>Start date</th><th id="th-end-date">End date</th></tr><thead>';
              var count = 1;
              for(var i in result) {
                 var start_date = result[i].start_date;
@@ -315,6 +315,7 @@
             if(end_date_text == ""){
                 cj('#th-end-date').hide();
             }
+            cj('#preview-dialog').css('height', '320px');
           },
           complete: function(){
             cj('div.crm-loading-element').hide();
