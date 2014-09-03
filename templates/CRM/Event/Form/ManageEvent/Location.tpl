@@ -62,10 +62,10 @@
         {assign var=locUsedMsgTxt value="<strong>Note:</strong> This location is used by multiple events. Modifying location information will change values for all events."}
         </td>
       </tr>
-
+     
     </table>
     {/if}
-
+    
 
 
     <div id="newLocation">
@@ -88,6 +88,7 @@
     </td>
   </tr>
   </table>
+ {include file="CRM/Event/Form/ConfirmSubmit.tpl"}
 <div class="crm-submit-buttons">
    {include file="CRM/common/formButtons.tpl" location="bottom"}
 </div>
