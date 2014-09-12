@@ -238,7 +238,7 @@ class CRM_Core_BAO_RecurringEntityTest extends CiviUnitTestCase {
  
       // Recursion library has returned an array based on the repeat configuration you provided
       $params = array();
-      $params['interval'] = 2;
+      $params['interval'] = CRM_Core_BAO_RecurringEntity::getInterval($this->start_date, $this->end_date);
       $recurResult = CRM_Core_BAO_RecurringEntity::generateRecursions($recursionObject, $params);
       
       //Store children events in an array
