@@ -158,7 +158,6 @@ class CRM_Core_Form_RecurringEntity {
       }
       $freqUnitsDisplay[$val] = ts('%1ly', array(1 => $label));
     }
-   // echo "<pre>";print_r($freqUnitsDisplay);
     $dayOfTheWeek = array('monday'   => 'Monday',
                           'tuesday'   => 'Tuesday',
                           'wednesday' => 'Wednesday',
@@ -167,6 +166,7 @@ class CRM_Core_Form_RecurringEntity {
                           'saturday'  => 'Saturday',
                           'sunday'    => 'Sunday'
                          );
+    $form->add('checkbox', 'isChangeInRepeatConfiguration', ts('Update Configuration?'));
     $form->add('select', 'repetition_frequency_unit', ts('Repeats:'), $freqUnitsDisplay, TRUE);
     $numericOptions = CRM_Core_SelectValues::getNumericOptions(1, 30);
     $form->add('select', 'repetition_frequency_interval', ts('Repeats every:'), $numericOptions, TRUE, array('style' => 'width:55px;'));
@@ -201,7 +201,7 @@ class CRM_Core_Form_RecurringEntity {
     $select->setMultiple(TRUE);
     $form->addElement('button','add_to_exclude_list','>>','onClick="addToExcludeList(document.getElementById(\'exclude_date\').value);"'); 
     $form->addElement('button','remove_from_exclude_list', '<<', 'onClick="removeFromExcludeList(\'exclude_date_list\')"'); 
-    $form->addElement('hidden', 'isChangeInRepeatConfiguration', '', array('id' => 'isChangeInRepeatConfiguration'));
+    //$form->addElement('hidden', 'isChangeInRepeatConfiguration', '', array('id' => 'isChangeInRepeatConfiguration'));
     $form->addElement('hidden', 'copyExcludeDates', '', array('id' => 'copyExcludeDates'));
     $form->addButtons(array(
         array(

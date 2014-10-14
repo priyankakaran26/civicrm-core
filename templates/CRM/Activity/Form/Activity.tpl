@@ -330,4 +330,38 @@
   {/if}
   </div>{* end of form block*}
 {/if} {* end of snippet if*}
-{include file="CRM/Event/Form/ManageEvent/ConfirmRepeatMode.tpl" entityID=$activityId entityTable="civicrm_activity"}
+
+{if $hasParent}
+{*just adds the dialog div*}
+{include file="CRM/Event/Form/ManageEvent/ConfirmRepeatMode.tpl"}
+{literal}
+  <script type="text/javascript">
+  cj(document).ready(function($) {
+    //Detect changes in Repeat configuration field
+    var unsavedChanges = false;
+    $('div.crm-core-form-recurringentity-block').on('change', function() {
+      unsavedChanges = true;
+      CRM.$("#_qf_Repeat_submit-top, #_qf_Repeat_submit-bottom, #_qf_Activity_upload-top, #_qf_Activity_upload-bottom").crmRecurringPreviewDialog({
+        entityID    : '{/literal}{$currentEntityId}{literal}',
+        entityTable : '{/literal}{$entityTable}{literal}'
+      });
+    });
+    if (unsavedChanges) {
+      CRM.$("#_qf_Repeat_submit-top, #_qf_Repeat_submit-bottom, #_qf_Activity_upload-top, #_qf_Activity_upload-bottom").crmRecurringPreviewDialog({
+        entityID    : '{/literal}{$currentEntityId}{literal}',
+        entityTable : '{/literal}{$entityTable}{literal}'
+      });
+    } 
+    else {
+      CRM.$("#_qf_Activity_upload-top, #_qf_Activity_upload-bottom").crmRecurringModeDialog({
+        entityID    : '{/literal}{$currentEntityId}{literal}',
+        entityTable : '{/literal}{$entityTable}{literal}',
+        mapper      : {
+          'CRM_Activity_Form_Activity': ''
+        }
+      });
+    }
+    });
+  </script>
+{/literal}
+{/if}

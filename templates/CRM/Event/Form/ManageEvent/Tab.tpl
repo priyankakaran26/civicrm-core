@@ -106,4 +106,25 @@ CRM.$(function($) {
 });
 </script>
 {/literal}
-{include file="CRM/Event/Form/ManageEvent/ConfirmRepeatMode.tpl" entityID=$id entityTable="civicrm_event"}
+{if $isRepeatingEntity}
+{*just adds the dialog div*}
+{include file="CRM/Event/Form/ManageEvent/ConfirmRepeatMode.tpl"}
+{literal}
+<script type="text/javascript">
+CRM.$('#crm-main-content-wrapper').on('click', 'div.crm-submit-buttons span.crm-button input[value="Save"], div.crm-submit-buttons span.crm-button input[value="Save and Done"]', function() {
+  CRM.$(this).crmRecurringModeDialog({
+    entityID    : '{/literal}{$id}{literal}',
+    entityTable : 'civicrm_event',
+    mapper      : {
+      'CRM_Event_Form_ManageEvent_EventInfo': '',
+      'CRM_Event_Form_ManageEvent_Location': '',
+      'CRM_Event_Form_ManageEvent_Fee': '',
+      'CRM_Event_Form_ManageEvent_Registration': '',
+      'CRM_Friend_Form_Event': 'civicrm_tell_friend',
+      'CRM_PCP_Form_Event': 'civicrm_pcp_block'
+    }
+  });
+});
+</script>
+{/literal}
+{/if}
