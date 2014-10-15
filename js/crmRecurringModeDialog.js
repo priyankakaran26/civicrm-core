@@ -6,14 +6,49 @@
 
 (function ($, _, undefined) {
   $.fn.crmRecurringModeDialog = function ( options ) {
+    console.log('crmRecurringModeDialog invoked.');
     var form = '';
     if (!options.entityID || !options.entityTable || !options.mapper) {
       CRM.console('error', 'Error: describe error');
       return false;
     }
+    console.log(this);
+
+    $(".only-this-event").click(function() {
+      console.log('update-mode-1');
+      updateMode(1, options);
+    });
+
+    $(".this-and-all-following-event").click(function() {
+      console.log('update-mode-2');
+      updateMode(2, options);
+    });
+
+    $(".all-events").click(function() {
+      console.log('update-mode-3');
+      updateMode(3, options);
+    });
+
     // fixme: throw error if this type is not button
-    $(this).click(function() {
-      form = $(this).parents('form:first').attr('class');
+    var r = true;
+    if (options.isOnClick) {
+      // if already in click mode / late binding
+      console.log("already clicked");
+      r = openRecurringDialog(this, options);
+      if (r == false) return false;
+    } else {
+      $(this).click(function() {
+        console.log("real click happening");
+        r = openRecurringDialog(this, options);
+        if (r == false) return false;
+      });
+    }
+
+  }
+    function openRecurringDialog(buttonObj, options) {
+      form = $(buttonObj).parents('form:first').attr('class');
+      console.log("form=" + form);
+      console.log(options.mapper.hasOwnProperty(form));
       if( form != "" && options.mapper.hasOwnProperty(form) ){
         $("#recurring-dialog").dialog({
           title: 'How does this change affect other repeating entities in the set?',
@@ -21,28 +56,16 @@
           width: '650',
           buttons: {
             Cancel: function() { //cancel
-              $( this ).dialog( "close" );
+              $(this).dialog( "close" );
             }
           }
         }).dialog('open');
         return false;
       }
-    });
+    }
     
-    $(".only-this-event").click(function() {
-      updateMode(1);
-    });
-
-    $(".this-and-all-following-event").click(function() {
-      updateMode(2);
-    });
-
-    $(".all-events").click(function() {
-      updateMode(3);
-    });
-    
-    function updateMode(mode) {
-      var entityID = parseInt(options.entityID);
+    function updateMode(mode, options) {
+      var entityID    = parseInt(options.entityID);
       var entityTable = options.entityTable;
       if (entityID != "" && mode && options.mapper.hasOwnProperty(form) && entityTable !="") {
         var ajaxurl = CRM.url("civicrm/ajax/recurringentity/update-mode");
@@ -69,7 +92,5 @@
         });
       }
     } 
-  };
-  
 })(jQuery, _);
 

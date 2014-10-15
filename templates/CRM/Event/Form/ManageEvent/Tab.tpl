@@ -113,6 +113,7 @@ CRM.$(function($) {
 <script type="text/javascript">
 CRM.$('#crm-main-content-wrapper').on('click', 'div.crm-submit-buttons span.crm-button input[value="Save"], div.crm-submit-buttons span.crm-button input[value="Save and Done"]', function() {
   CRM.$(this).crmRecurringModeDialog({
+    isOnClick   : true,
     entityID    : '{/literal}{$id}{literal}',
     entityTable : 'civicrm_event',
     mapper      : {

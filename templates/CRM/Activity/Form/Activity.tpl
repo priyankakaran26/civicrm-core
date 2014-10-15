@@ -335,33 +335,35 @@
 {*just adds the dialog div*}
 {include file="CRM/Event/Form/ManageEvent/ConfirmRepeatMode.tpl"}
 {literal}
-  <script type="text/javascript">
+<script type="text/javascript">
   cj(document).ready(function($) {
-    //Detect changes in Repeat configuration field
-    var unsavedChanges = false;
+    CRM.$("#_qf_Activity_upload-top, #_qf_Activity_upload-bottom").on('click', function() 
+    {
+      var recurringConfigChanged = CRM.$('div.crm-core-form-recurringentity-block').data('recurring-config-changed');
+      if (recurringConfigChanged == true) {
+        console.log('r-gen-dialog');
+        CRM.$("#_qf_Repeat_submit-top, #_qf_Repeat_submit-bottom, #_qf_Activity_upload-top, #_qf_Activity_upload-bottom").crmRecurringPreviewDialog({
+          entityID    : '{/literal}{$currentEntityId}{literal}',
+          entityTable : '{/literal}{$entityTable}{literal}'
+        });
+      } else {
+        console.log('rmode-dialog');
+        CRM.$(this).crmRecurringModeDialog({
+          entityID    : '{/literal}{$currentEntityId}{literal}',
+          entityTable : '{/literal}{$entityTable}{literal}',
+          mapper      : {
+            'CRM_Activity_Form_Activity': ''
+          }
+        });
+      }
+    });
+  
+    //Detect changes in Repeat configuration block
     $('div.crm-core-form-recurringentity-block').on('change', function() {
-      unsavedChanges = true;
-      CRM.$("#_qf_Repeat_submit-top, #_qf_Repeat_submit-bottom, #_qf_Activity_upload-top, #_qf_Activity_upload-bottom").crmRecurringPreviewDialog({
-        entityID    : '{/literal}{$currentEntityId}{literal}',
-        entityTable : '{/literal}{$entityTable}{literal}'
-      });
+      console.log('r-blk-changed');
+      $(this).data('recurring-config-changed', true);
     });
-    if (unsavedChanges) {
-      CRM.$("#_qf_Repeat_submit-top, #_qf_Repeat_submit-bottom, #_qf_Activity_upload-top, #_qf_Activity_upload-bottom").crmRecurringPreviewDialog({
-        entityID    : '{/literal}{$currentEntityId}{literal}',
-        entityTable : '{/literal}{$entityTable}{literal}'
-      });
-    } 
-    else {
-      CRM.$("#_qf_Activity_upload-top, #_qf_Activity_upload-bottom").crmRecurringModeDialog({
-        entityID    : '{/literal}{$currentEntityId}{literal}',
-        entityTable : '{/literal}{$entityTable}{literal}',
-        mapper      : {
-          'CRM_Activity_Form_Activity': ''
-        }
-      });
-    }
-    });
-  </script>
+  });
+</script>
 {/literal}
 {/if}
